@@ -145,6 +145,15 @@ fun MainAppContent(
                 onClearCache = { id -> viewModel.clearSingleInstanceCache(id) },
                 onSimulatePush = { id, title, body ->
                     viewModel.simulateNotificationForInstance(id, title, body)
+                },
+                onCompleteSetup = { id, username, email, notes ->
+                    viewModel.completeInstanceSetup(id, username, email, notes)
+                },
+                onResetToFreshInstall = { id ->
+                    viewModel.resetInstanceToFreshInstall(id)
+                },
+                onUpdateNotes = { id, notes ->
+                    viewModel.updateInstanceNotes(id, notes)
                 }
             )
         } else {

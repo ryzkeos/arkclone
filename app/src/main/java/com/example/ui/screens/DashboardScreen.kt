@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.engine.RealAppIconView
@@ -278,20 +279,24 @@ fun DashboardScreen(
 
                                 Spacer(modifier = Modifier.width(10.dp))
 
-                                Column {
+                                Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = app.appName,
                                         fontFamily = ChakraPetchFontFamily,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 13.sp,
-                                        color = PureWhite
+                                        color = PureWhite,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                     Text(
                                         text = "${app.packageName} • ${app.apkSizeBytes / (1024 * 1024)} MB",
                                         fontFamily = ChakraPetchFontFamily,
                                         fontWeight = FontWeight.Normal,
                                         fontSize = 10.sp,
-                                        color = GraySubtle
+                                        color = GraySubtle,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }
@@ -419,7 +424,9 @@ fun DashboardScreen(
                                                 fontFamily = ChakraPetchFontFamily,
                                                 fontWeight = FontWeight.SemiBold,
                                                 fontSize = 11.sp,
-                                                color = PureWhite
+                                                color = PureWhite,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
                                             )
                                         }
                                     }
