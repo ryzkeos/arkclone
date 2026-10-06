@@ -109,9 +109,3 @@ data class NotificationItem(
     val timestamp: Long = System.currentTimeMillis(),
     val isRead: Boolean = false
 )
-
-data class CacheCleanResult(
-    val totalCleanedBytes: Long,
-    val instancesCleanedCount: Int,
-    val timestamp: Long = System.currentTimeMillis()
-)

@@ -17,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
@@ -37,18 +36,15 @@ import com.arkeos.arkclone.R
 import com.arkeos.arkclone.ui.theme.ChakraPetchFontFamily
 import com.arkeos.arkclone.ui.theme.DarkCardBorder
 import com.arkeos.arkclone.ui.theme.DarkSurface
-import com.arkeos.arkclone.ui.theme.GraySubtle
 import com.arkeos.arkclone.ui.theme.PureBlack
 import com.arkeos.arkclone.ui.theme.PureWhite
-import com.arkeos.arkclone.ui.theme.SilverAccent
 
 @Composable
 fun DashboardTopBar(
     unreadNotificationsCount: Int,
     isDarkMode: Boolean,
     onToggleDarkMode: () -> Unit,
-    onNotificationsClick: () -> Unit,
-    onResourceLimiterClick: () -> Unit
+    onNotificationsClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -85,16 +81,6 @@ fun DashboardTopBar(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Text(
-                    text = "VIRTUAL SPACES ONLINE",
-                    fontFamily = ChakraPetchFontFamily,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 9.sp,
-                    letterSpacing = 1.sp,
-                    color = GraySubtle,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
             }
         }
 
@@ -144,19 +130,6 @@ fun DashboardTopBar(
                         modifier = Modifier.size(20.dp)
                     )
                 }
-            }
-
-            // Resource Limiter Settings
-            IconButton(
-                onClick = onResourceLimiterClick,
-                modifier = Modifier.testTag("resource_limiter_button")
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Tune,
-                    contentDescription = "Resource Limiter",
-                    tint = SilverAccent,
-                    modifier = Modifier.size(20.dp)
-                )
             }
         }
     }

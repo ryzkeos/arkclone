@@ -16,14 +16,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.PowerSettingsNew
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -45,7 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkeos.arkclone.engine.RealAppIconView
 import com.arkeos.arkclone.model.ClonedInstance
-import com.arkeos.arkclone.model.InstanceStatus
+import com.arkeos.arkclone.model.CloneInstallState
 import com.arkeos.arkclone.ui.theme.ChakraPetchFontFamily
 import com.arkeos.arkclone.ui.theme.DarkCardBorder
 import com.arkeos.arkclone.ui.theme.DarkSurface
@@ -61,15 +57,12 @@ fun InstanceCard(
     instance: ClonedInstance,
     onLaunch: () -> Unit,
     onLaunchRealAppDirectly: () -> Unit,
-    onToggleSleep: () -> Unit,
-    onClearCache: () -> Unit,
-    onSimulateNotification: () -> Unit,
     onOpenAppSettings: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showMenu by remember { mutableStateOf(false) }
-    val isRunning = instance.status == InstanceStatus.RUNNING
+    val isInstalled = instance.installState == CloneInstallState.INSTALLED
 
     Box(
         modifier = modifier
@@ -78,7 +71,7 @@ fun InstanceCard(
             .background(DarkSurfaceVariant)
             .border(
                 1.dp,
-                if (isRunning) PureWhite else DarkCardBorder,
+                if (isInstalled) PureWhite else DarkCardBorder,
                 RoundedCornerShape(12.dp)
             )
             .padding(14.dp)
@@ -161,18 +154,18 @@ fun InstanceCard(
                         modifier = Modifier
                             .size(8.dp)
                             .clip(CircleShape)
-                            .background(if (isRunning) PureWhite else GrayMedium)
+                            .background(if (isInstalled) PureWhite else GrayMedium)
                     )
 
                     Spacer(modifier = Modifier.width(6.dp))
 
                     Text(
-                        text = if (isRunning) "ACTIVE" else "SLEEP",
+                        text = instance.installState.label.uppercase(),
                         fontFamily = ChakraPetchFontFamily,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 10.sp,
                         letterSpacing = 0.5.sp,
-                        color = if (isRunning) PureWhite else GrayMedium
+                        color = if (isInstalled) PureWhite else GrayMedium
                     )
 
                     Box {
@@ -221,52 +214,6 @@ fun InstanceCard(
                             DropdownMenuItem(
                                 text = {
                                     Text(
-                                        "Send Push Alert to Account",
-                                        fontFamily = ChakraPetchFontFamily,
-                                        color = PureWhite,
-                                        fontSize = 12.sp
-                                    )
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.Send,
-                                        contentDescription = null,
-                                        tint = PureWhite,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                },
-                                onClick = {
-                                    showMenu = false
-                                    onSimulateNotification()
-                                }
-                            )
-
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        "Clear Cache (${instance.cacheSizeBytes / (1024 * 1024)} MB)",
-                                        fontFamily = ChakraPetchFontFamily,
-                                        color = PureWhite,
-                                        fontSize = 12.sp
-                                    )
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.CleaningServices,
-                                        contentDescription = null,
-                                        tint = PureWhite,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                },
-                                onClick = {
-                                    showMenu = false
-                                    onClearCache()
-                                }
-                            )
-
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
                                         "App Info (Settings)",
                                         fontFamily = ChakraPetchFontFamily,
                                         color = PureWhite,
@@ -284,29 +231,6 @@ fun InstanceCard(
                                 onClick = {
                                     showMenu = false
                                     onOpenAppSettings()
-                                }
-                            )
-
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        if (isRunning) "Hibernate Instance" else "Wake Instance",
-                                        fontFamily = ChakraPetchFontFamily,
-                                        color = PureWhite,
-                                        fontSize = 12.sp
-                                    )
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.PowerSettingsNew,
-                                        contentDescription = null,
-                                        tint = PureWhite,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                },
-                                onClick = {
-                                    showMenu = false
-                                    onToggleSleep()
                                 }
                             )
 
@@ -366,42 +290,6 @@ fun InstanceCard(
                         color = PureWhite
                     )
                 }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "CACHE: ",
-                        fontFamily = ChakraPetchFontFamily,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 10.sp,
-                        color = GrayMedium
-                    )
-                    Text(
-                        text = "${instance.cacheSizeBytes / (1024 * 1024)} MB",
-                        fontFamily = ChakraPetchFontFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp,
-                        color = SilverAccent
-                    )
-                }
-
-                if (instance.pendingNotifications > 0) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.NotificationsActive,
-                            contentDescription = "Notifications",
-                            tint = PureWhite,
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Spacer(modifier = Modifier.width(3.dp))
-                        Text(
-                            text = "${instance.pendingNotifications} PUSH",
-                            fontFamily = ChakraPetchFontFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 10.sp,
-                            color = PureWhite
-                        )
-                    }
-                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -459,25 +347,6 @@ fun InstanceCard(
                         fontSize = 11.sp,
                         letterSpacing = 0.5.sp,
                         color = SilverAccent
-                    )
-                }
-
-                // Hibernate / Sleep Button
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(DarkSurface)
-                        .border(1.dp, DarkCardBorder, RoundedCornerShape(8.dp))
-                        .clickable { onToggleSleep() }
-                        .padding(horizontal = 10.dp, vertical = 10.dp)
-                        .testTag("sleep_button_${instance.id}"),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PowerSettingsNew,
-                        contentDescription = "Hibernate",
-                        tint = if (isRunning) SilverAccent else GrayMedium,
-                        modifier = Modifier.size(16.dp)
                     )
                 }
             }

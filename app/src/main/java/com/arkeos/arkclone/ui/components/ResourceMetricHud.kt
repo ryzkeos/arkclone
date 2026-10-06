@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Storage
@@ -30,17 +31,15 @@ import com.arkeos.arkclone.ui.theme.DarkCardBorder
 import com.arkeos.arkclone.ui.theme.DarkSurfaceVariant
 import com.arkeos.arkclone.ui.theme.GrayMedium
 import com.arkeos.arkclone.ui.theme.GraySubtle
-import com.arkeos.arkclone.ui.theme.PureBlack
 import com.arkeos.arkclone.ui.theme.PureWhite
 import com.arkeos.arkclone.ui.theme.SilverAccent
 
 @Composable
 fun ResourceMetricHud(
-    activeCount: Int,
+    installedCount: Int,
     totalInstancesCount: Int,
-    totalMemoryMb: Float,
-    totalCacheFormatted: String,
-    isEcoActive: Boolean
+    freeRamFormatted: String,
+    apkSizeFormatted: String
 ) {
     Box(
         modifier = Modifier
@@ -52,102 +51,81 @@ fun ResourceMetricHud(
             .padding(14.dp)
     ) {
         Column {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Security,
-                        contentDescription = "Architecture Isolation",
-                        tint = PureWhite,
-                        modifier = Modifier.height(14.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "VIRTUAL ENCLAVE TELEMETRY",
-                        fontFamily = ChakraPetchFontFamily,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 11.sp,
-                        letterSpacing = 1.2.sp,
-                        color = PureWhite
-                    )
-                }
-
-                // Low-Resource badge
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(if (isEcoActive) PureWhite else GrayMedium)
-                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                ) {
-                    Text(
-                        text = if (isEcoActive) "LOW OVERHEAD" else "MAX PERF",
-                        fontFamily = ChakraPetchFontFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 9.sp,
-                        letterSpacing = 0.5.sp,
-                        color = PureBlack
-                    )
-                }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Security,
+                    contentDescription = null,
+                    tint = PureWhite,
+                    modifier = Modifier.height(14.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "OVERVIEW",
+                    fontFamily = ChakraPetchFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 11.sp,
+                    letterSpacing = 1.2.sp,
+                    color = PureWhite
+                )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Metric 1: Active Instances
-                Column(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Apps,
+                            contentDescription = "Installed clones",
+                            tint = GraySubtle,
+                            modifier = Modifier.height(12.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "INSTALLED",
+                            fontFamily = ChakraPetchFontFamily,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 10.sp,
+                            color = GrayMedium
+                        )
+                    }
                     Text(
-                        text = "INSTANCES",
-                        fontFamily = ChakraPetchFontFamily,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 10.sp,
-                        color = GrayMedium
-                    )
-                    Text(
-                        text = "$activeCount / $totalInstancesCount",
+                        text = "$installedCount / $totalInstancesCount",
                         fontFamily = ChakraPetchFontFamily,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         color = PureWhite
                     )
-                    Text(
-                        text = "Running Spaces",
-                        fontFamily = ChakraPetchFontFamily,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 9.sp,
-                        color = GraySubtle
-                    )
                 }
 
-                // Divider line
                 Box(
                     modifier = Modifier
                         .width(1.dp)
-                        .height(38.dp)
+                        .height(30.dp)
                         .background(DarkCardBorder)
                 )
 
-                // Metric 2: Virtual RAM
                 Column(
                     modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 12.dp)
+                        .weight(1f).padding(start = 12.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.Memory,
-                            contentDescription = "RAM",
+                            contentDescription = "Free device memory",
                             tint = GraySubtle,
                             modifier = Modifier.height(12.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "V-RAM",
+                            text = "FREE RAM",
                             fontFamily = ChakraPetchFontFamily,
                             fontWeight = FontWeight.Medium,
                             fontSize = 10.sp,
@@ -155,45 +133,35 @@ fun ResourceMetricHud(
                         )
                     }
                     Text(
-                        text = String.format("%.1f MB", totalMemoryMb),
+                        text = freeRamFormatted,
                         fontFamily = ChakraPetchFontFamily,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         color = PureWhite
                     )
-                    Text(
-                        text = "Low Footprint",
-                        fontFamily = ChakraPetchFontFamily,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 9.sp,
-                        color = GraySubtle
-                    )
                 }
 
-                // Divider line
                 Box(
                     modifier = Modifier
                         .width(1.dp)
-                        .height(38.dp)
+                        .height(30.dp)
                         .background(DarkCardBorder)
                 )
 
-                // Metric 3: Total Cache Junk
                 Column(
                     modifier = Modifier
-                        .weight(1.1f)
-                        .padding(start = 12.dp)
+                        .weight(1.1f).padding(start = 12.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.Storage,
-                            contentDescription = "Cache",
+                            contentDescription = "Clone APK size",
                             tint = GraySubtle,
                             modifier = Modifier.height(12.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "CACHE JUNK",
+                            text = "CLONE SIZE",
                             fontFamily = ChakraPetchFontFamily,
                             fontWeight = FontWeight.Medium,
                             fontSize = 10.sp,
@@ -201,18 +169,11 @@ fun ResourceMetricHud(
                         )
                     }
                     Text(
-                        text = totalCacheFormatted,
+                        text = apkSizeFormatted,
                         fontFamily = ChakraPetchFontFamily,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         color = SilverAccent
-                    )
-                    Text(
-                        text = "One-Tap Flushable",
-                        fontFamily = ChakraPetchFontFamily,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 9.sp,
-                        color = GraySubtle
                     )
                 }
             }

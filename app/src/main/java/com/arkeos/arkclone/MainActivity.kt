@@ -1,6 +1,8 @@
 package com.arkeos.arkclone
 
 import android.Manifest
+import android.app.ActivityManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -19,18 +21,21 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import com.arkeos.arkclone.engine.ArkCloneViewModel
 import com.arkeos.arkclone.engine.ArkNotificationEngine
+import com.arkeos.arkclone.model.CloneInstallState
+import kotlinx.coroutines.delay
 import com.arkeos.arkclone.ui.components.StartupSplash
 import com.arkeos.arkclone.ui.screens.CloneAppDialog
 import com.arkeos.arkclone.ui.screens.DashboardScreen
 import com.arkeos.arkclone.ui.screens.InstanceSwitcherSheet
 import com.arkeos.arkclone.ui.screens.NotificationCenterDialog
-import com.arkeos.arkclone.ui.screens.ResourceLimiterDialog
 import com.arkeos.arkclone.ui.screens.VirtualAppRunnerScreen
 import com.arkeos.arkclone.ui.theme.ArkCloneTheme
 import com.arkeos.arkclone.ui.theme.PureBlack
@@ -110,20 +115,28 @@ fun MainAppContent(
     val notifications by viewModel.notifications.collectAsState()
     val activeInstanceId by viewModel.activeInstanceId.collectAsState()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
-    val isCleaningCache by viewModel.isCleaningCache.collectAsState()
-    val cleanResult by viewModel.cleanResult.collectAsState()
-    val isEcoActive by viewModel.isEcoSaverActive.collectAsState()
     val installedApps by viewModel.installedApps.collectAsState()
     val isScanning by viewModel.isScanning.collectAsState()
 
     val showCloneDialog by viewModel.showCloneDialog.collectAsState()
     val showSwitcherSheet by viewModel.showSwitcherSheet.collectAsState()
-    val showResourceLimiter by viewModel.showResourceLimiter.collectAsState()
     val showNotificationCenter by viewModel.showNotificationCenter.collectAsState()
 
-    val totalMemoryMb = instances.map { it.memoryUsageMb }.sum()
-    val totalCacheBytes = instances.map { it.cacheSizeBytes }.sum()
-    val totalCacheFormatted = viewModel.formatBytes(totalCacheBytes)
+    val context = LocalContext.current
+    val freeRamBytes by produceState(initialValue = 0L) {
+        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        while (true) {
+            val info = ActivityManager.MemoryInfo()
+            activityManager.getMemoryInfo(info)
+            value = info.availMem
+            delay(3000)
+        }
+    }
+    val installedCount = instances.count { it.installState == CloneInstallState.INSTALLED }
+    val apkSizeFormatted = viewModel.formatBytes(
+        instances.filter { it.installState == CloneInstallState.INSTALLED }.sumOf { it.realApkSizeBytes }
+    )
+    val freeRamFormatted = viewModel.formatBytes(freeRamBytes)
     val unreadNotificationsCount = notifications.count { !it.isRead }
 
     val currentInstance = instances.find { it.id == activeInstanceId }
@@ -168,12 +181,10 @@ fun MainAppContent(
                 installedApps = installedApps,
                 unreadCount = unreadNotificationsCount,
                 isDarkMode = isDarkMode,
-                isEcoActive = isEcoActive,
-                isCleaningCache = isCleaningCache,
-                cleanResult = cleanResult,
                 selectedCategory = selectedCategory,
-                totalCacheFormatted = totalCacheFormatted,
-                totalMemoryMb = totalMemoryMb,
+                installedCount = installedCount,
+                freeRamFormatted = freeRamFormatted,
+                apkSizeFormatted = apkSizeFormatted,
                 onToggleDarkMode = { viewModel.toggleDarkMode() },
                 onCategorySelect = { cat -> viewModel.setCategoryFilter(cat) },
                 onOpenCloneDialog = {
@@ -181,23 +192,10 @@ fun MainAppContent(
                     viewModel.setShowCloneDialog(true)
                 },
                 onOpenNotificationCenter = { viewModel.setShowNotificationCenter(true) },
-                onOpenResourceLimiter = { viewModel.setShowResourceLimiter(true) },
-                onOneTapCleanCache = { viewModel.oneTapCleanAllCache() },
-                onDismissCleanResult = { viewModel.dismissCleanResult() },
                 onQuickClone = { app -> viewModel.quickCloneSuggestedApk(app) },
                 onLaunchInstance = { id -> viewModel.launchInstance(id, launchRealApp = false) },
                 onLaunchRealAppDirectly = { id -> viewModel.launchInstance(id, launchRealApp = true) },
                 onOpenAppSettings = { pkg -> viewModel.openRealAppSettings(pkg) },
-                onToggleSleep = { id -> viewModel.toggleInstanceSleep(id) },
-                onClearInstanceCache = { id -> viewModel.clearSingleInstanceCache(id) },
-                onSimulateNotification = { id ->
-                    val inst = instances.find { it.id == id }
-                    viewModel.simulateNotificationForInstance(
-                        id,
-                        "Important Update",
-                        "Account synchronization active for ${inst?.appName ?: "APK"}."
-                    )
-                },
                 onDeleteInstance = { id -> viewModel.deleteInstance(id) }
             )
         }
@@ -233,17 +231,6 @@ fun MainAppContent(
                     viewModel.launchInstance(instanceId, launchRealApp = true)
                 },
                 onClearAll = { viewModel.clearAllNotifications() }
-            )
-        }
-
-        if (showResourceLimiter) {
-            ResourceLimiterDialog(
-                isEcoActive = isEcoActive,
-                onToggleEco = { viewModel.toggleEcoSaver() },
-                onDismiss = { viewModel.setShowResourceLimiter(false) },
-                onTrimMemory = {
-                    System.gc()
-                }
             )
         }
 

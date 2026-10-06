@@ -10,7 +10,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.arkeos.arkclone.data.CloneStorage
 import com.arkeos.arkclone.model.AppCategory
-import com.arkeos.arkclone.model.CacheCleanResult
 import com.arkeos.arkclone.model.CloneInstallState
 import com.arkeos.arkclone.model.ClonedInstance
 import com.arkeos.arkclone.model.InstanceStatus
@@ -19,7 +18,6 @@ import com.arkeos.arkclone.model.RealInstalledApk
 import com.arkeos.arkclone.model.ResourcePriority
 import com.arkeos.arkclone.model.VirtualUserSession
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,17 +48,8 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
     private val _selectedCategory = MutableStateFlow(AppCategory.ALL)
     val selectedCategory: StateFlow<AppCategory> = _selectedCategory.asStateFlow()
 
-    private val _isCleaningCache = MutableStateFlow(false)
-    val isCleaningCache: StateFlow<Boolean> = _isCleaningCache.asStateFlow()
-
-    private val _cleanResult = MutableStateFlow<CacheCleanResult?>(null)
-    val cleanResult: StateFlow<CacheCleanResult?> = _cleanResult.asStateFlow()
-
     private val _isDarkMode = MutableStateFlow(true)
     val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
-
-    private val _isEcoSaverActive = MutableStateFlow(true)
-    val isEcoSaverActive: StateFlow<Boolean> = _isEcoSaverActive.asStateFlow()
 
     private val _installedApps = MutableStateFlow<List<RealInstalledApk>>(emptyList())
     val installedApps: StateFlow<List<RealInstalledApk>> = _installedApps.asStateFlow()
@@ -74,9 +63,6 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
 
     private val _showSwitcherSheet = MutableStateFlow(false)
     val showSwitcherSheet: StateFlow<Boolean> = _showSwitcherSheet.asStateFlow()
-
-    private val _showResourceLimiter = MutableStateFlow(false)
-    val showResourceLimiter: StateFlow<Boolean> = _showResourceLimiter.asStateFlow()
 
     private val _showNotificationCenter = MutableStateFlow(false)
     val showNotificationCenter: StateFlow<Boolean> = _showNotificationCenter.asStateFlow()
@@ -134,7 +120,6 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
         _instances.value = loaded
         _notifications.value = storage.loadNotifications()
         _isDarkMode.value = storage.isDarkMode()
-        _isEcoSaverActive.value = storage.isEcoModeEnabled()
     }
 
     fun toggleDarkMode() {
@@ -164,32 +149,8 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
         _showSwitcherSheet.value = show
     }
 
-    fun setShowResourceLimiter(show: Boolean) {
-        _showResourceLimiter.value = show
-    }
-
     fun setShowNotificationCenter(show: Boolean) {
         _showNotificationCenter.value = show
-    }
-
-    fun toggleEcoSaver() {
-        val newMode = !_isEcoSaverActive.value
-        _isEcoSaverActive.value = newMode
-        storage.setEcoModeEnabled(newMode)
-
-        if (newMode) {
-            _instances.update { list ->
-                list.map { inst ->
-                    if (inst.id != _activeInstanceId.value && inst.status == InstanceStatus.RUNNING) {
-                        inst.copy(
-                            status = InstanceStatus.SLEEPING,
-                            memoryUsageMb = 3.8f
-                        )
-                    } else inst
-                }
-            }
-            storage.saveInstances(_instances.value)
-        }
     }
 
     fun launchInstance(instanceId: String, launchRealApp: Boolean = true) {
@@ -308,49 +269,6 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
             }
         }
         storage.saveInstances(_instances.value)
-    }
-
-    fun oneTapCleanAllCache() {
-        if (_isCleaningCache.value) return
-        viewModelScope.launch {
-            _isCleaningCache.value = true
-
-            var totalCleaned = 0L
-            val count = _instances.value.size
-
-            for (inst in _instances.value) {
-                if (inst.cacheSizeBytes > 200_000L) {
-                    totalCleaned += (inst.cacheSizeBytes - 200_000L)
-                }
-                try {
-                    val cacheDir = File(inst.isolatedStoragePath, "cache")
-                    if (cacheDir.exists()) {
-                        cacheDir.listFiles()?.forEach { it.deleteRecursively() }
-                    }
-                } catch (e: Exception) {
-                    // Ignore
-                }
-            }
-
-            delay(750)
-
-            _instances.update { list ->
-                list.map { inst ->
-                    inst.copy(cacheSizeBytes = 200_000L)
-                }
-            }
-            storage.saveInstances(_instances.value)
-
-            _cleanResult.value = CacheCleanResult(
-                totalCleanedBytes = if (totalCleaned > 0) totalCleaned else 48_200_000L,
-                instancesCleanedCount = count
-            )
-            _isCleaningCache.value = false
-        }
-    }
-
-    fun dismissCleanResult() {
-        _cleanResult.value = null
     }
 
     fun deleteInstance(instanceId: String) {
