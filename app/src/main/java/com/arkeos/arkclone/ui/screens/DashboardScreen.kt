@@ -38,13 +38,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkeos.arkclone.engine.RealAppIconView
 import com.arkeos.arkclone.model.AppCategory
-import com.arkeos.arkclone.model.CacheCleanResult
 import com.arkeos.arkclone.model.ClonedInstance
-import com.arkeos.arkclone.model.InstanceStatus
 import com.arkeos.arkclone.model.RealInstalledApk
 import com.arkeos.arkclone.ui.components.DashboardTopBar
 import com.arkeos.arkclone.ui.components.InstanceCard
-import com.arkeos.arkclone.ui.components.OneTapCleanCard
 import com.arkeos.arkclone.ui.components.ResourceMetricHud
 import com.arkeos.arkclone.ui.theme.ChakraPetchFontFamily
 import com.arkeos.arkclone.ui.theme.DarkCardBorder
@@ -62,30 +59,20 @@ fun DashboardScreen(
     installedApps: List<RealInstalledApk>,
     unreadCount: Int,
     isDarkMode: Boolean,
-    isEcoActive: Boolean,
-    isCleaningCache: Boolean,
-    cleanResult: CacheCleanResult?,
     selectedCategory: AppCategory,
-    totalCacheFormatted: String,
-    totalMemoryMb: Float,
+    installedCount: Int,
+    freeRamFormatted: String,
+    apkSizeFormatted: String,
     onToggleDarkMode: () -> Unit,
     onCategorySelect: (AppCategory) -> Unit,
     onOpenCloneDialog: () -> Unit,
     onOpenNotificationCenter: () -> Unit,
-    onOpenResourceLimiter: () -> Unit,
-    onOneTapCleanCache: () -> Unit,
-    onDismissCleanResult: () -> Unit,
     onQuickClone: (RealInstalledApk) -> Unit,
     onLaunchInstance: (String) -> Unit,
     onLaunchRealAppDirectly: (String) -> Unit,
     onOpenAppSettings: (String) -> Unit,
-    onToggleSleep: (String) -> Unit,
-    onClearInstanceCache: (String) -> Unit,
-    onSimulateNotification: (String) -> Unit,
     onDeleteInstance: (String) -> Unit
 ) {
-    val activeCount = instances.count { it.status == InstanceStatus.RUNNING }
-
     val filteredInstances = if (selectedCategory == AppCategory.ALL) {
         instances
     } else {
@@ -99,8 +86,7 @@ fun DashboardScreen(
                 unreadNotificationsCount = unreadCount,
                 isDarkMode = isDarkMode,
                 onToggleDarkMode = onToggleDarkMode,
-                onNotificationsClick = onOpenNotificationCenter,
-                onResourceLimiterClick = onOpenResourceLimiter
+                onNotificationsClick = onOpenNotificationCenter
             )
         },
         floatingActionButton = {
@@ -134,25 +120,12 @@ fun DashboardScreen(
                 .padding(paddingValues),
             contentPadding = PaddingValues(bottom = 96.dp)
         ) {
-            // HUD telemetry banner
             item {
                 ResourceMetricHud(
-                    activeCount = activeCount,
+                    installedCount = installedCount,
                     totalInstancesCount = instances.size,
-                    totalMemoryMb = totalMemoryMb,
-                    totalCacheFormatted = totalCacheFormatted,
-                    isEcoActive = isEcoActive
-                )
-            }
-
-            // One-Tap Cache Cleaner Section
-            item {
-                OneTapCleanCard(
-                    totalCacheFormatted = totalCacheFormatted,
-                    isCleaning = isCleaningCache,
-                    lastResult = cleanResult,
-                    onCleanAllClick = onOneTapCleanCache,
-                    onDismissResult = onDismissCleanResult
+                    freeRamFormatted = freeRamFormatted,
+                    apkSizeFormatted = apkSizeFormatted
                 )
             }
 
@@ -371,9 +344,6 @@ fun DashboardScreen(
                             instance = instance,
                             onLaunch = { onLaunchInstance(instance.id) },
                             onLaunchRealAppDirectly = { onLaunchRealAppDirectly(instance.id) },
-                            onToggleSleep = { onToggleSleep(instance.id) },
-                            onClearCache = { onClearInstanceCache(instance.id) },
-                            onSimulateNotification = { onSimulateNotification(instance.id) },
                             onOpenAppSettings = { onOpenAppSettings(instance.clonePackageName.ifBlank { instance.packageName }) },
                             onDelete = { onDeleteInstance(instance.id) }
                         )

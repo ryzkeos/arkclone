@@ -20,15 +20,11 @@ class CloneStorage(private val context: Context) {
         private const val KEY_INSTANCES = "saved_instances"
         private const val KEY_NOTIFICATIONS = "saved_notifications"
         private const val KEY_DARK_MODE = "dark_mode_enabled"
-        private const val KEY_ECO_MODE = "eco_mode_enabled"
         private const val KEY_AUTO_CLEAN = "auto_clean_enabled"
     }
 
     fun isDarkMode(): Boolean = prefs.getBoolean(KEY_DARK_MODE, true)
     fun setDarkMode(enabled: Boolean) = prefs.edit().putBoolean(KEY_DARK_MODE, enabled).apply()
-
-    fun isEcoModeEnabled(): Boolean = prefs.getBoolean(KEY_ECO_MODE, true)
-    fun setEcoModeEnabled(enabled: Boolean) = prefs.edit().putBoolean(KEY_ECO_MODE, enabled).apply()
 
     fun isAutoCleanEnabled(): Boolean = prefs.getBoolean(KEY_AUTO_CLEAN, false)
     fun setAutoCleanEnabled(enabled: Boolean) = prefs.edit().putBoolean(KEY_AUTO_CLEAN, enabled).apply()
