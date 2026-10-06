@@ -11,18 +11,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
@@ -35,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -60,23 +62,24 @@ import com.arkeos.arkclone.ui.theme.PureBlack
 import com.arkeos.arkclone.ui.theme.PureWhite
 import com.arkeos.arkclone.ui.theme.SilverAccent
 
+private const val MAX_CLONES = 5
+
 @Composable
 fun CloneAppDialog(
     availableApps: List<RealInstalledApk>,
     isScanning: Boolean,
-    onRescan: () -> Unit,
     onDismiss: () -> Unit,
     onConfirmClone: (
         targetApk: RealInstalledApk,
         count: Int,
-        alias: String,
+        aliases: List<String>,
         category: AppCategory
     ) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedApp by remember { mutableStateOf<RealInstalledApk?>(availableApps.firstOrNull()) }
     var cloneCount by remember { mutableIntStateOf(1) }
-    var customAlias by remember { mutableStateOf("") }
+    val nicknames = remember { mutableStateListOf("") }
     var selectedCategory by remember { mutableStateOf(AppCategory.TOOLS) }
 
     val filteredApps = remember(searchQuery, availableApps) {
@@ -107,7 +110,6 @@ fun CloneAppDialog(
                 modifier = Modifier
                     .padding(16.dp)
             ) {
-                // Header with breathing room between refresh and close buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -123,7 +125,7 @@ fun CloneAppDialog(
                             color = PureWhite
                         )
                         Text(
-                            text = "Select an installed application to create an isolated space",
+                            text = "Select an app to clone",
                             fontFamily = ChakraPetchFontFamily,
                             fontWeight = FontWeight.Normal,
                             fontSize = 10.sp,
@@ -131,33 +133,16 @@ fun CloneAppDialog(
                         )
                     }
 
-                    // Space to breathe between refresh and close buttons
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    IconButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.size(32.dp)
                     ) {
-                        IconButton(
-                            onClick = onRescan,
-                            modifier = Modifier.size(32.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Refresh,
-                                contentDescription = "Rescan Apps",
-                                tint = SilverAccent,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                        IconButton(
-                            onClick = onDismiss,
-                            modifier = Modifier.size(32.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Close",
-                                tint = PureWhite,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Close",
+                            tint = PureWhite,
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
                 }
 
@@ -246,9 +231,6 @@ fun CloneAppDialog(
                                 )
                                 .clickable {
                                     selectedApp = app
-                                    if (customAlias.isBlank()) {
-                                        customAlias = "${app.appName} Space"
-                                    }
                                     selectedCategory = app.category
                                 }
                                 .padding(horizontal = 10.dp, vertical = 8.dp)
@@ -320,26 +302,87 @@ fun CloneAppDialog(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Nickname & Copies Stepper
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = if (cloneCount > 1) "CLONE NICKNAMES" else "CLONE NICKNAME",
+                        fontFamily = ChakraPetchFontFamily,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 10.sp,
+                        color = GrayMedium
+                    )
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(DarkSurfaceVariant)
+                            .border(1.dp, DarkCardBorder, RoundedCornerShape(6.dp))
+                            .padding(horizontal = 4.dp, vertical = 2.dp)
+                    ) {
+                        IconButton(
+                            onClick = {
+                                if (cloneCount > 1) {
+                                    cloneCount--
+                                    nicknames.removeAt(nicknames.lastIndex)
+                                }
+                            },
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Remove,
+                                contentDescription = "Fewer clones",
+                                tint = PureWhite,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
                         Text(
-                            text = "SPACE NICKNAME",
+                            text = cloneCount.toString(),
                             fontFamily = ChakraPetchFontFamily,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 10.sp,
-                            color = GrayMedium
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp,
+                            color = PureWhite,
+                            modifier = Modifier.padding(horizontal = 6.dp)
                         )
+                        IconButton(
+                            onClick = {
+                                if (cloneCount < MAX_CLONES) {
+                                    cloneCount++
+                                    nicknames.add("")
+                                }
+                            },
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = "More clones",
+                                tint = PureWhite,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 108.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    nicknames.forEachIndexed { index, nickname ->
                         OutlinedTextField(
-                            value = customAlias,
-                            onValueChange = { customAlias = it },
+                            value = nickname,
+                            onValueChange = { nicknames[index] = it },
+                            singleLine = true,
                             placeholder = {
                                 Text(
-                                    "${selectedApp?.appName ?: "App"} Space",
+                                    if (cloneCount > 1) "Clone ${index + 1} nickname" else "Clone nickname",
                                     fontFamily = ChakraPetchFontFamily,
                                     fontSize = 11.sp,
                                     color = GrayMedium
@@ -359,62 +402,10 @@ fun CloneAppDialog(
                                 .height(48.dp)
                         )
                     }
-
-                    Spacer(modifier = Modifier.width(10.dp))
-
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "COPIES",
-                            fontFamily = ChakraPetchFontFamily,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 10.sp,
-                            color = GrayMedium
-                        )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(DarkSurfaceVariant)
-                                .border(1.dp, DarkCardBorder, RoundedCornerShape(6.dp))
-                                .padding(horizontal = 4.dp, vertical = 2.dp)
-                        ) {
-                            IconButton(
-                                onClick = { if (cloneCount > 1) cloneCount-- },
-                                modifier = Modifier.size(28.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.Remove,
-                                    contentDescription = "Minus",
-                                    tint = PureWhite,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                            }
-                            Text(
-                                text = cloneCount.toString(),
-                                fontFamily = ChakraPetchFontFamily,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 13.sp,
-                                color = PureWhite,
-                                modifier = Modifier.padding(horizontal = 6.dp)
-                            )
-                            IconButton(
-                                onClick = { if (cloneCount < 5) cloneCount++ },
-                                modifier = Modifier.size(28.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.Add,
-                                    contentDescription = "Plus",
-                                    tint = PureWhite,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                            }
-                        }
-                    }
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Manual Category Selector (Replaced Enclave Tag per user request)
                 Text(
                     text = "CATEGORY",
                     fontFamily = ChakraPetchFontFamily,
@@ -469,7 +460,7 @@ fun CloneAppDialog(
                                 onConfirmClone(
                                     app,
                                     cloneCount,
-                                    customAlias.ifBlank { "${app.appName} Space" },
+                                    nicknames.toList(),
                                     selectedCategory
                                 )
                             }
@@ -487,7 +478,7 @@ fun CloneAppDialog(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "CREATE CLONED SPACE",
+                            text = "CREATE CLONED APP",
                             fontFamily = ChakraPetchFontFamily,
                             fontWeight = FontWeight.Bold,
                             fontSize = 12.sp,

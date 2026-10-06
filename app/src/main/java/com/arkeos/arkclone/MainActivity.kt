@@ -130,10 +130,9 @@ fun MainAppContent(
             CloneAppDialog(
                 availableApps = installedApps,
                 isScanning = isScanning,
-                onRescan = { viewModel.scanInstalledApks() },
                 onDismiss = { viewModel.setShowCloneDialog(false) },
-                onConfirmClone = { targetApk, count, alias, category ->
-                    viewModel.cloneRealApk(targetApk, count, alias, category)
+                onConfirmClone = { targetApk, count, aliases, category ->
+                    viewModel.cloneRealApk(targetApk, count, aliases, category)
                 }
             )
         }

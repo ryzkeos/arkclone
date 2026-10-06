@@ -65,13 +65,14 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
 
     private fun applyInstallEvent(event: CloneInstallEvent) {
         _instances.update { list ->
-            list.map { inst ->
-                if (inst.clonePackageName == event.packageName) {
-                    inst.copy(
-                        installState = event.state,
-                        installError = if (event.state == CloneInstallState.FAILED) event.message else ""
-                    )
-                } else inst
+            if (event.state == CloneInstallState.FAILED) {
+                list.filterNot { it.clonePackageName == event.packageName }
+            } else {
+                list.map { inst ->
+                    if (inst.clonePackageName == event.packageName) {
+                        inst.copy(installState = event.state, installError = "")
+                    } else inst
+                }
             }
         }
         storage.saveInstances(_instances.value)
@@ -102,8 +103,15 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
     }
 
     private fun loadData() {
-        val loaded = storage.loadInstances()
+        val loaded = storage.loadInstances().filter { inst ->
+            when (inst.installState) {
+                CloneInstallState.FAILED, CloneInstallState.PREPARING, CloneInstallState.AWAITING_USER ->
+                    inst.clonePackageName.isNotBlank() && cloneInstaller.isInstalled(inst.clonePackageName)
+                else -> true
+            }
+        }
         _instances.value = loaded
+        storage.saveInstances(loaded)
         _isDarkMode.value = storage.isDarkMode()
     }
 
@@ -205,7 +213,6 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
         cloneRealApk(
             targetApk = targetApk,
             cloneCount = 1,
-            customAlias = "${targetApk.appName} Space",
             customCategory = targetApk.category
         )
     }
@@ -213,7 +220,7 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
     fun cloneRealApk(
         targetApk: RealInstalledApk,
         cloneCount: Int = 1,
-        customAlias: String = "",
+        aliases: List<String> = emptyList(),
         customCategory: AppCategory = targetApk.category
     ) {
         if (!cloneInstaller.canInstall()) {
@@ -237,11 +244,8 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
                 }
                 val clonePackage = clonePackageFor(targetApk.packageName, number)
 
-                val alias = if (customAlias.isNotBlank() && i == 0) {
-                    customAlias
-                } else {
-                    "${targetApk.appName} Clone #$number"
-                }
+                val alias = aliases.getOrNull(i)?.trim().orEmpty()
+                    .ifBlank { "${targetApk.appName} Clone #$number" }
 
                 val instance = ClonedInstance(
                     id = "inst_${clonePackage.replace(".", "_")}_" + UUID.randomUUID().toString().substring(0, 6),
@@ -294,7 +298,7 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
                 if (committed) {
                     _instances.first { list ->
                         val state = list.find { it.id == instance.id }?.installState
-                        state == CloneInstallState.INSTALLED || state == CloneInstallState.FAILED
+                        state == null || state == CloneInstallState.INSTALLED
                     }
                 }
             }
