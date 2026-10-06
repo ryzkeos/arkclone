@@ -3,6 +3,7 @@ package com.example.data
 import android.content.Context
 import android.content.SharedPreferences
 import com.example.model.AppCategory
+import com.example.model.CloneInstallState
 import com.example.model.ClonedInstance
 import com.example.model.InstanceStatus
 import com.example.model.NotificationItem
@@ -85,7 +86,14 @@ class CloneStorage(private val context: Context) {
                     isRealApkInstalled = obj.optBoolean("isRealApkInstalled", true),
                     targetSdkVersion = obj.optInt("targetSdkVersion", 34),
                     mainActivityName = obj.optString("mainActivityName", ""),
-                    virtualUid = obj.optInt("virtualUid", 10001)
+                    virtualUid = obj.optInt("virtualUid", 10001),
+                    clonePackageName = obj.optString("clonePackageName", ""),
+                    installState = try {
+                        CloneInstallState.valueOf(obj.optString("installState", CloneInstallState.NOT_INSTALLED.name))
+                    } catch (e: IllegalArgumentException) {
+                        CloneInstallState.NOT_INSTALLED
+                    },
+                    installError = obj.optString("installError", "")
                 )
                 list.add(instance)
             }
@@ -126,6 +134,9 @@ class CloneStorage(private val context: Context) {
                 put("targetSdkVersion", inst.targetSdkVersion)
                 put("mainActivityName", inst.mainActivityName)
                 put("virtualUid", inst.virtualUid)
+                put("clonePackageName", inst.clonePackageName)
+                put("installState", inst.installState.name)
+                put("installError", inst.installError)
 
                 val sessionObj = JSONObject().apply {
                     put("username", inst.userSession.username)

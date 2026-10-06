@@ -374,7 +374,7 @@ fun DashboardScreen(
                             onToggleSleep = { onToggleSleep(instance.id) },
                             onClearCache = { onClearInstanceCache(instance.id) },
                             onSimulateNotification = { onSimulateNotification(instance.id) },
-                            onOpenAppSettings = { onOpenAppSettings(instance.packageName) },
+                            onOpenAppSettings = { onOpenAppSettings(instance.clonePackageName.ifBlank { instance.packageName }) },
                             onDelete = { onDeleteInstance(instance.id) }
                         )
                     }

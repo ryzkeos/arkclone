@@ -4,20 +4,24 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.provider.Settings
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.CloneStorage
 import com.example.model.AppCategory
 import com.example.model.CacheCleanResult
+import com.example.model.CloneInstallState
 import com.example.model.ClonedInstance
 import com.example.model.InstanceStatus
 import com.example.model.NotificationItem
 import com.example.model.RealInstalledApk
 import com.example.model.ResourcePriority
 import com.example.model.VirtualUserSession
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,6 +35,8 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
     private val storage = CloneStorage(application)
     private val notificationEngine = ArkNotificationEngine(application)
     private val appScanner = InstalledAppScanner(application)
+    private val cloneInstaller = CloneInstaller(application)
+    private val repackager = ApkRepackager(CloneSigner())
 
     private val _instances = MutableStateFlow<List<ClonedInstance>>(emptyList())
     val instances: StateFlow<List<ClonedInstance>> = _instances.asStateFlow()
@@ -78,6 +84,49 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
     init {
         loadData()
         scanInstalledApks()
+        refreshInstallStates()
+        viewModelScope.launch {
+            CloneInstallEvents.flow.collect { event -> applyInstallEvent(event) }
+        }
+    }
+
+    private fun applyInstallEvent(event: CloneInstallEvent) {
+        _instances.update { list ->
+            list.map { inst ->
+                if (inst.clonePackageName == event.packageName) {
+                    inst.copy(
+                        installState = event.state,
+                        installError = if (event.state == CloneInstallState.FAILED) event.message else "",
+                        isFreshlyInstalled = if (event.state == CloneInstallState.INSTALLED) true else inst.isFreshlyInstalled
+                    )
+                } else inst
+            }
+        }
+        storage.saveInstances(_instances.value)
+        if (event.state == CloneInstallState.FAILED) {
+            toast("Clone install failed: ${event.message.ifBlank { "cancelled or rejected" }}")
+        }
+    }
+
+    fun refreshInstallStates() {
+        _instances.update { list ->
+            list.map { inst ->
+                if (inst.clonePackageName.isBlank()) return@map inst
+                val installed = cloneInstaller.isInstalled(inst.clonePackageName)
+                when {
+                    installed && inst.installState != CloneInstallState.INSTALLED ->
+                        inst.copy(installState = CloneInstallState.INSTALLED, installError = "")
+                    !installed && inst.installState == CloneInstallState.INSTALLED ->
+                        inst.copy(installState = CloneInstallState.NOT_INSTALLED)
+                    else -> inst
+                }
+            }
+        }
+        storage.saveInstances(_instances.value)
+    }
+
+    private fun toast(message: String) {
+        Toast.makeText(getApplication<Application>(), message, Toast.LENGTH_LONG).show()
     }
 
     private fun loadData() {
@@ -177,22 +226,13 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
         val pm = context.packageManager
 
         return try {
-            val intent = pm.getLaunchIntentForPackage(instance.packageName)
+            if (instance.clonePackageName.isBlank() || instance.installState != CloneInstallState.INSTALLED) {
+                toast("This clone is not installed yet")
+                return false
+            }
+            val intent = pm.getLaunchIntentForPackage(instance.clonePackageName)
             if (intent != null) {
-                // Configure multi-task flags so Android creates an independent task entry in Launcher Recents
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                intent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
-                }
-
-                // Virtual space container metadata
-                intent.putExtra("ark.vspace.id", instance.id)
-                intent.putExtra("ark.vspace.clone_num", instance.cloneNumber)
-                intent.putExtra("ark.vspace.storage_dir", instance.isolatedStoragePath)
-                intent.putExtra("ark.vspace.badge", instance.badgeTag)
-                intent.putExtra("ark.vspace.uid", instance.virtualUid)
-
                 context.startActivity(intent)
                 true
             } else {
@@ -323,6 +363,12 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
             }
         }
 
+        if (instance != null && instance.clonePackageName.isNotBlank() &&
+            cloneInstaller.isInstalled(instance.clonePackageName)
+        ) {
+            cloneInstaller.uninstall(instance.clonePackageName)
+        }
+
         if (_activeInstanceId.value == instanceId) {
             _activeInstanceId.value = null
         }
@@ -349,89 +395,110 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
         customCategory: AppCategory = targetApk.category,
         priority: ResourcePriority = ResourcePriority.BALANCED
     ) {
-        viewModelScope.launch {
-            val currentList = _instances.value
-            val existingForPkg = currentList.filter { it.packageName == targetApk.packageName }
-            var nextCloneNum = existingForPkg.size + 1
+        if (!cloneInstaller.canInstall()) {
+            toast("Allow Ark Clone to install apps, then try again")
+            cloneInstaller.openInstallPermissionSettings()
+            return
+        }
+        _showCloneDialog.value = false
 
-            val newInstances = mutableListOf<ClonedInstance>()
+        viewModelScope.launch {
             val context = getApplication<Application>()
 
             for (i in 0 until cloneCount) {
-                val uniqueId = "inst_${targetApk.packageName.replace(".", "_")}_" +
-                        UUID.randomUUID().toString().substring(0, 6)
+                val used = _instances.value
+                    .filter { it.packageName == targetApk.packageName }
+                    .map { it.cloneNumber }
+                    .toSet()
+                var number = 1
+                while (number in used || cloneInstaller.isInstalled(clonePackageFor(targetApk.packageName, number))) {
+                    number++
+                }
+                val clonePackage = clonePackageFor(targetApk.packageName, number)
 
-                val badge = when (nextCloneNum) {
+                val badge = when (number) {
                     1 -> "MAIN"
                     2 -> "WORK"
                     3 -> "ALT"
                     4 -> "VIP"
                     else -> "CLONE"
                 }
-
                 val alias = if (customAlias.isNotBlank() && i == 0) {
                     customAlias
                 } else {
-                    "${targetApk.appName} Clone #$nextCloneNum"
+                    "${targetApk.appName} Clone #$number"
                 }
 
-                val spaceDir = File(context.filesDir, "vspaces/${targetApk.packageName}_inst_$nextCloneNum")
+                val spaceDir = File(context.filesDir, "vspaces/${clonePackage}")
                 spaceDir.mkdirs()
-                File(spaceDir, "files").mkdirs()
-                File(spaceDir, "cache").mkdirs()
-                File(spaceDir, "databases").mkdirs()
-                File(spaceDir, "shared_prefs").mkdirs()
-                File(spaceDir, "notifs").mkdirs()
 
-                val userSession = VirtualUserSession(
-                    username = "",
-                    handle = "",
-                    statusBio = "Freshly installed isolated container",
-                    isAccountSetupComplete = false,
-                    registeredPhoneOrEmail = "",
-                    isolatedNotes = "",
-                    storageFilesCount = 0,
-                    recentActivityTimestamp = System.currentTimeMillis()
-                )
-
-                val newInst = ClonedInstance(
-                    id = uniqueId,
+                val instance = ClonedInstance(
+                    id = "inst_${clonePackage.replace(".", "_")}_" + UUID.randomUUID().toString().substring(0, 6),
                     appName = targetApk.appName,
                     packageName = targetApk.packageName,
-                    cloneNumber = nextCloneNum,
+                    cloneNumber = number,
                     alias = alias,
                     badgeTag = badge,
                     category = customCategory,
                     status = InstanceStatus.IDLE,
                     memoryUsageMb = priority.baseMemoryMb,
-                    cacheSizeBytes = 0L, // Fresh install starts with 0 cache
-                    dataSizeBytes = 1_200_000L, // Baseline isolated clean sandbox structure
-                    notificationsEnabled = true,
-                    pendingNotifications = 0,
                     resourcePriority = priority,
                     isolatedStoragePath = spaceDir.absolutePath,
-                    userSession = userSession,
+                    userSession = VirtualUserSession(statusBio = "Freshly installed isolated container"),
                     isFreshlyInstalled = true,
                     realSourceApkPath = targetApk.sourceApkPath,
                     realApkSizeBytes = targetApk.apkSizeBytes,
                     realVersionName = targetApk.versionName,
                     realVersionCode = targetApk.versionCode,
-                    isRealApkInstalled = true,
                     targetSdkVersion = targetApk.targetSdkVersion,
                     mainActivityName = targetApk.mainActivityName,
-                    virtualUid = 10000 + nextCloneNum
+                    virtualUid = 10000 + number,
+                    clonePackageName = clonePackage,
+                    installState = CloneInstallState.PREPARING
                 )
+                _instances.update { it + instance }
+                storage.saveInstances(_instances.value)
 
-                newInstances.add(newInst)
-                nextCloneNum++
+                val committed = withContext(Dispatchers.IO) {
+                    val workDir = File(context.cacheDir, "clone_work/$clonePackage")
+                    try {
+                        val sources = (listOf(targetApk.sourceApkPath) + targetApk.splitSourcePaths)
+                            .map { File(it) }
+                        val apks = repackager.repackage(
+                            sourceApks = sources,
+                            newPackage = clonePackage,
+                            cloneSuffix = "clone$number",
+                            label = alias,
+                            workDir = workDir
+                        )
+                        cloneInstaller.install(clonePackage, apks)
+                        true
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        CloneInstallEvents.emit(
+                            CloneInstallEvent(
+                                clonePackage,
+                                CloneInstallState.FAILED,
+                                e.message ?: e.javaClass.simpleName
+                            )
+                        )
+                        false
+                    } finally {
+                        workDir.deleteRecursively()
+                    }
+                }
+
+                if (committed) {
+                    _instances.first { list ->
+                        val state = list.find { it.id == instance.id }?.installState
+                        state == CloneInstallState.INSTALLED || state == CloneInstallState.FAILED
+                    }
+                }
             }
-
-            val updated = currentList + newInstances
-            _instances.value = updated
-            storage.saveInstances(updated)
-            _showCloneDialog.value = false
         }
     }
+
+    private fun clonePackageFor(original: String, number: Int): String = "$original.clone$number"
 
     fun completeInstanceSetup(instanceId: String, username: String, emailOrPhone: String, notes: String) {
         val target = _instances.value.find { it.id == instanceId } ?: return
