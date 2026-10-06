@@ -65,7 +65,8 @@ class InstalledAppScanner(private val context: Context) {
                         category = category,
                         defaultBadge = badge,
                         mainActivityName = resolveInfo.activityInfo.name,
-                        hasLaunchIntent = true
+                        hasLaunchIntent = true,
+                        splitSourcePaths = appInfo.splitSourceDirs?.toList() ?: emptyList()
                     )
                 )
             }
@@ -113,7 +114,8 @@ class InstalledAppScanner(private val context: Context) {
                             category = categorize(appName, pkgName),
                             defaultBadge = if (isSystem) "SYS" else "APK",
                             mainActivityName = "",
-                            hasLaunchIntent = (launchIntent != null)
+                            hasLaunchIntent = (launchIntent != null),
+                            splitSourcePaths = appInfo.splitSourceDirs?.toList() ?: emptyList()
                         )
                     )
                 }

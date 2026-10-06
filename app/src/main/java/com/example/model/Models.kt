@@ -7,6 +7,14 @@ enum class InstanceStatus(val label: String) {
     FROZEN("Frozen")
 }
 
+enum class CloneInstallState(val label: String) {
+    PREPARING("Preparing"),
+    AWAITING_USER("Waiting for confirmation"),
+    INSTALLED("Installed"),
+    FAILED("Failed"),
+    NOT_INSTALLED("Not installed")
+}
+
 enum class ResourcePriority(val label: String, val baseMemoryMb: Float) {
     LOW_POWER("Eco Saver", 14.5f),
     BALANCED("Balanced", 26.0f),
@@ -68,7 +76,10 @@ data class ClonedInstance(
     val isRealApkInstalled: Boolean = true,
     val targetSdkVersion: Int = 34,
     val mainActivityName: String = "",
-    val virtualUid: Int = 10001
+    val virtualUid: Int = 10001,
+    val clonePackageName: String = "",
+    val installState: CloneInstallState = CloneInstallState.NOT_INSTALLED,
+    val installError: String = ""
 )
 
 data class RealInstalledApk(
@@ -83,7 +94,8 @@ data class RealInstalledApk(
     val category: AppCategory,
     val defaultBadge: String,
     val mainActivityName: String = "",
-    val hasLaunchIntent: Boolean = true
+    val hasLaunchIntent: Boolean = true,
+    val splitSourcePaths: List<String> = emptyList()
 )
 
 data class NotificationItem(

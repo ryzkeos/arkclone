@@ -58,6 +58,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.refreshInstallStates()
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleIntent(intent)
@@ -138,7 +143,7 @@ fun MainAppContent(
                     viewModel.startRealApkProcess(currentInstance)
                 },
                 onOpenAppSettings = {
-                    viewModel.openRealAppSettings(currentInstance.packageName)
+                    viewModel.openRealAppSettings(currentInstance.clonePackageName.ifBlank { currentInstance.packageName })
                 },
                 onSwitchInstance = { targetId -> viewModel.switchInstance(targetId) },
                 onToggleSleep = { id -> viewModel.toggleInstanceSleep(id) },
