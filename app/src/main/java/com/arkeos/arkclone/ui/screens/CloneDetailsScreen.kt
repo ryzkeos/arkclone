@@ -37,13 +37,13 @@ import androidx.compose.ui.unit.sp
 import com.arkeos.arkclone.engine.RealAppIconView
 import com.arkeos.arkclone.model.ClonedInstance
 import com.arkeos.arkclone.ui.theme.ChakraPetchFontFamily
-import com.arkeos.arkclone.ui.theme.DarkCardBorder
-import com.arkeos.arkclone.ui.theme.DarkSurface
-import com.arkeos.arkclone.ui.theme.DarkSurfaceVariant
-import com.arkeos.arkclone.ui.theme.GrayMedium
-import com.arkeos.arkclone.ui.theme.GraySubtle
-import com.arkeos.arkclone.ui.theme.PureBlack
-import com.arkeos.arkclone.ui.theme.PureWhite
+import com.arkeos.arkclone.ui.theme.ArkBorder
+import com.arkeos.arkclone.ui.theme.ArkSurface
+import com.arkeos.arkclone.ui.theme.ArkSurfaceVariant
+import com.arkeos.arkclone.ui.theme.ArkMuted
+import com.arkeos.arkclone.ui.theme.ArkSubtle
+import com.arkeos.arkclone.ui.theme.ArkPaper
+import com.arkeos.arkclone.ui.theme.ArkInk
 
 @Composable
 fun CloneDetailsScreen(
@@ -57,14 +57,14 @@ fun CloneDetailsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(PureBlack)
+            .background(ArkPaper)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(DarkSurface)
+                .background(ArkSurface)
                 .statusBarsPadding()
-                .border(1.dp, DarkCardBorder)
+                .border(1.dp, ArkBorder)
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -77,7 +77,7 @@ fun CloneDetailsScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back to dashboard",
-                    tint = PureWhite,
+                    tint = ArkInk,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -95,20 +95,20 @@ fun CloneDetailsScreen(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "${instance.appName} #${instance.cloneNumber}",
+                    text = instance.alias,
                     fontFamily = ChakraPetchFontFamily,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
-                    color = PureWhite,
+                    color = ArkInk,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = instance.alias,
+                    text = instance.clonePackageName.ifBlank { instance.packageName },
                     fontFamily = ChakraPetchFontFamily,
                     fontWeight = FontWeight.Medium,
                     fontSize = 10.sp,
-                    color = GraySubtle,
+                    color = ArkSubtle,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -125,7 +125,7 @@ fun CloneDetailsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(12.dp))
-                        .background(PureWhite)
+                        .background(ArkInk)
                         .clickable { onLaunch() }
                         .padding(16.dp)
                         .testTag("details_launch_button"),
@@ -135,7 +135,7 @@ fun CloneDetailsScreen(
                         Icon(
                             imageVector = Icons.Default.PlayArrow,
                             contentDescription = null,
-                            tint = PureBlack,
+                            tint = ArkPaper,
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(10.dp))
@@ -145,7 +145,7 @@ fun CloneDetailsScreen(
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
                             letterSpacing = 1.sp,
-                            color = PureBlack
+                            color = ArkPaper
                         )
                     }
                 }
@@ -156,8 +156,8 @@ fun CloneDetailsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(DarkSurfaceVariant)
-                        .border(1.dp, DarkCardBorder, RoundedCornerShape(8.dp))
+                        .background(ArkSurfaceVariant)
+                        .border(1.dp, ArkBorder, RoundedCornerShape(8.dp))
                         .clickable { onOpenAppSettings() }
                         .padding(12.dp)
                         .testTag("details_app_settings_button"),
@@ -167,7 +167,7 @@ fun CloneDetailsScreen(
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = null,
-                            tint = PureWhite,
+                            tint = ArkInk,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
@@ -176,7 +176,7 @@ fun CloneDetailsScreen(
                             fontFamily = ChakraPetchFontFamily,
                             fontWeight = FontWeight.Bold,
                             fontSize = 11.sp,
-                            color = PureWhite
+                            color = ArkInk
                         )
                     }
                 }
@@ -187,8 +187,8 @@ fun CloneDetailsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp))
-                        .background(DarkSurfaceVariant)
-                        .border(1.dp, DarkCardBorder, RoundedCornerShape(10.dp))
+                        .background(ArkSurfaceVariant)
+                        .border(1.dp, ArkBorder, RoundedCornerShape(10.dp))
                         .padding(14.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
@@ -198,7 +198,7 @@ fun CloneDetailsScreen(
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp,
                         letterSpacing = 1.sp,
-                        color = PureWhite
+                        color = ArkInk
                     )
                     DetailRow("Status", instance.installState.label)
                     DetailRow("Clone package", instance.clonePackageName.ifBlank { "Not set" })
@@ -226,14 +226,14 @@ private fun DetailRow(label: String, value: String) {
             fontFamily = ChakraPetchFontFamily,
             fontWeight = FontWeight.Medium,
             fontSize = 9.sp,
-            color = GrayMedium
+            color = ArkMuted
         )
         Text(
             text = value,
             fontFamily = ChakraPetchFontFamily,
             fontWeight = FontWeight.SemiBold,
             fontSize = 12.sp,
-            color = PureWhite,
+            color = ArkInk,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )

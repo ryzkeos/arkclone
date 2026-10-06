@@ -44,14 +44,14 @@ import com.arkeos.arkclone.ui.components.DashboardTopBar
 import com.arkeos.arkclone.ui.components.InstanceCard
 import com.arkeos.arkclone.ui.components.ResourceMetricHud
 import com.arkeos.arkclone.ui.theme.ChakraPetchFontFamily
-import com.arkeos.arkclone.ui.theme.DarkCardBorder
-import com.arkeos.arkclone.ui.theme.DarkSurface
-import com.arkeos.arkclone.ui.theme.DarkSurfaceVariant
-import com.arkeos.arkclone.ui.theme.GrayMedium
-import com.arkeos.arkclone.ui.theme.GraySubtle
-import com.arkeos.arkclone.ui.theme.PureBlack
-import com.arkeos.arkclone.ui.theme.PureWhite
-import com.arkeos.arkclone.ui.theme.SilverAccent
+import com.arkeos.arkclone.ui.theme.ArkBorder
+import com.arkeos.arkclone.ui.theme.ArkSurface
+import com.arkeos.arkclone.ui.theme.ArkSurfaceVariant
+import com.arkeos.arkclone.ui.theme.ArkMuted
+import com.arkeos.arkclone.ui.theme.ArkSubtle
+import com.arkeos.arkclone.ui.theme.ArkPaper
+import com.arkeos.arkclone.ui.theme.ArkInk
+import com.arkeos.arkclone.ui.theme.ArkSoft
 
 @Composable
 fun DashboardScreen(
@@ -78,7 +78,7 @@ fun DashboardScreen(
     }
 
     Scaffold(
-        containerColor = PureBlack,
+        containerColor = ArkPaper,
         topBar = {
             DashboardTopBar(
                 isDarkMode = isDarkMode,
@@ -88,8 +88,8 @@ fun DashboardScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onOpenCloneDialog,
-                containerColor = PureWhite,
-                contentColor = PureBlack,
+                containerColor = ArkInk,
+                contentColor = ArkPaper,
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.testTag("fab_clone_app")
             ) {
@@ -139,10 +139,10 @@ fun DashboardScreen(
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(6.dp))
-                                    .background(if (isCatSelected) PureWhite else DarkSurface)
+                                    .background(if (isCatSelected) ArkInk else ArkSurface)
                                     .border(
                                         1.dp,
-                                        if (isCatSelected) PureWhite else DarkCardBorder,
+                                        if (isCatSelected) ArkInk else ArkBorder,
                                         RoundedCornerShape(6.dp)
                                     )
                                     .clickable { onCategorySelect(cat) }
@@ -155,7 +155,7 @@ fun DashboardScreen(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 10.sp,
                                     letterSpacing = 0.5.sp,
-                                    color = if (isCatSelected) PureBlack else PureWhite
+                                    color = if (isCatSelected) ArkPaper else ArkInk
                                 )
                             }
                         }
@@ -180,7 +180,7 @@ fun DashboardScreen(
                                 Icon(
                                     imageVector = Icons.Default.AutoAwesome,
                                     contentDescription = null,
-                                    tint = PureWhite,
+                                    tint = ArkInk,
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
@@ -190,7 +190,7 @@ fun DashboardScreen(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 13.sp,
                                     letterSpacing = 1.sp,
-                                    color = PureWhite
+                                    color = ArkInk
                                 )
                             }
 
@@ -199,7 +199,7 @@ fun DashboardScreen(
                                 fontFamily = ChakraPetchFontFamily,
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 9.sp,
-                                color = GrayMedium
+                                color = ArkMuted
                             )
                         }
 
@@ -208,7 +208,7 @@ fun DashboardScreen(
                             fontFamily = ChakraPetchFontFamily,
                             fontWeight = FontWeight.Normal,
                             fontSize = 11.sp,
-                            color = GraySubtle,
+                            color = ArkSubtle,
                             modifier = Modifier.padding(top = 2.dp, bottom = 12.dp)
                         )
                     }
@@ -225,8 +225,8 @@ fun DashboardScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 4.dp)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(DarkSurfaceVariant)
-                            .border(1.dp, DarkCardBorder, RoundedCornerShape(10.dp))
+                            .background(ArkSurfaceVariant)
+                            .border(1.dp, ArkBorder, RoundedCornerShape(10.dp))
                             .padding(12.dp)
                             .testTag("suggested_app_${app.packageName}")
                     ) {
@@ -254,7 +254,7 @@ fun DashboardScreen(
                                         fontFamily = ChakraPetchFontFamily,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 13.sp,
-                                        color = PureWhite,
+                                        color = ArkInk,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
@@ -263,7 +263,7 @@ fun DashboardScreen(
                                         fontFamily = ChakraPetchFontFamily,
                                         fontWeight = FontWeight.Normal,
                                         fontSize = 10.sp,
-                                        color = GraySubtle,
+                                        color = ArkSubtle,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
@@ -274,7 +274,7 @@ fun DashboardScreen(
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(6.dp))
-                                    .background(PureWhite)
+                                    .background(ArkInk)
                                     .clickable { onQuickClone(app) }
                                     .padding(horizontal = 12.dp, vertical = 8.dp)
                                     .testTag("quick_clone_btn_${app.packageName}"),
@@ -284,7 +284,7 @@ fun DashboardScreen(
                                     Icon(
                                         imageVector = Icons.Default.Add,
                                         contentDescription = "Clone",
-                                        tint = PureBlack,
+                                        tint = ArkPaper,
                                         modifier = Modifier.size(14.dp)
                                     )
                                     Spacer(modifier = Modifier.width(3.dp))
@@ -294,7 +294,7 @@ fun DashboardScreen(
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 11.sp,
                                         letterSpacing = 0.5.sp,
-                                        color = PureBlack
+                                        color = ArkPaper
                                     )
                                 }
                             }
@@ -317,7 +317,7 @@ fun DashboardScreen(
                             fontWeight = FontWeight.Bold,
                             fontSize = 12.sp,
                             letterSpacing = 1.sp,
-                            color = GraySubtle
+                            color = ArkSubtle
                         )
 
                         Text(
@@ -325,7 +325,7 @@ fun DashboardScreen(
                             fontFamily = ChakraPetchFontFamily,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 10.sp,
-                            color = GrayMedium
+                            color = ArkMuted
                         )
                     }
                 }
@@ -360,7 +360,7 @@ fun DashboardScreen(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 11.sp,
                                 letterSpacing = 1.sp,
-                                color = GrayMedium
+                                color = ArkMuted
                             )
 
                             Spacer(modifier = Modifier.height(8.dp))
@@ -372,8 +372,8 @@ fun DashboardScreen(
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(8.dp))
-                                            .background(DarkSurfaceVariant)
-                                            .border(1.dp, DarkCardBorder, RoundedCornerShape(8.dp))
+                                            .background(ArkSurfaceVariant)
+                                            .border(1.dp, ArkBorder, RoundedCornerShape(8.dp))
                                             .clickable { onQuickClone(app) }
                                             .padding(horizontal = 10.dp, vertical = 8.dp)
                                     ) {
@@ -390,7 +390,7 @@ fun DashboardScreen(
                                                 fontFamily = ChakraPetchFontFamily,
                                                 fontWeight = FontWeight.SemiBold,
                                                 fontSize = 11.sp,
-                                                color = PureWhite,
+                                                color = ArkInk,
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis
                                             )

@@ -27,12 +27,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkeos.arkclone.ui.theme.ChakraPetchFontFamily
-import com.arkeos.arkclone.ui.theme.DarkCardBorder
-import com.arkeos.arkclone.ui.theme.DarkSurfaceVariant
-import com.arkeos.arkclone.ui.theme.GrayMedium
-import com.arkeos.arkclone.ui.theme.GraySubtle
-import com.arkeos.arkclone.ui.theme.PureWhite
-import com.arkeos.arkclone.ui.theme.SilverAccent
+import com.arkeos.arkclone.ui.theme.ArkBorder
+import com.arkeos.arkclone.ui.theme.ArkSurfaceVariant
+import com.arkeos.arkclone.ui.theme.ArkMuted
+import com.arkeos.arkclone.ui.theme.ArkSubtle
+import com.arkeos.arkclone.ui.theme.ArkInk
+import com.arkeos.arkclone.ui.theme.ArkSoft
 
 @Composable
 fun ResourceMetricHud(
@@ -46,8 +46,8 @@ fun ResourceMetricHud(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(DarkSurfaceVariant)
-            .border(1.dp, DarkCardBorder, RoundedCornerShape(12.dp))
+            .background(ArkSurfaceVariant)
+            .border(1.dp, ArkBorder, RoundedCornerShape(12.dp))
             .padding(14.dp)
     ) {
         Column {
@@ -55,7 +55,7 @@ fun ResourceMetricHud(
                 Icon(
                     imageVector = Icons.Default.Security,
                     contentDescription = null,
-                    tint = PureWhite,
+                    tint = ArkInk,
                     modifier = Modifier.height(14.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
@@ -65,7 +65,7 @@ fun ResourceMetricHud(
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 11.sp,
                     letterSpacing = 1.2.sp,
-                    color = PureWhite
+                    color = ArkInk
                 )
             }
 
@@ -84,7 +84,7 @@ fun ResourceMetricHud(
                         Icon(
                             imageVector = Icons.Default.Apps,
                             contentDescription = "Installed clones",
-                            tint = GraySubtle,
+                            tint = ArkSubtle,
                             modifier = Modifier.height(12.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
@@ -93,7 +93,7 @@ fun ResourceMetricHud(
                             fontFamily = ChakraPetchFontFamily,
                             fontWeight = FontWeight.Medium,
                             fontSize = 10.sp,
-                            color = GrayMedium
+                            color = ArkMuted
                         )
                     }
                     Text(
@@ -101,7 +101,7 @@ fun ResourceMetricHud(
                         fontFamily = ChakraPetchFontFamily,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
-                        color = PureWhite
+                        color = ArkInk
                     )
                 }
 
@@ -109,7 +109,7 @@ fun ResourceMetricHud(
                     modifier = Modifier
                         .width(1.dp)
                         .height(30.dp)
-                        .background(DarkCardBorder)
+                        .background(ArkBorder)
                 )
 
                 Column(
@@ -120,7 +120,7 @@ fun ResourceMetricHud(
                         Icon(
                             imageVector = Icons.Default.Memory,
                             contentDescription = "Free device memory",
-                            tint = GraySubtle,
+                            tint = ArkSubtle,
                             modifier = Modifier.height(12.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
@@ -129,7 +129,7 @@ fun ResourceMetricHud(
                             fontFamily = ChakraPetchFontFamily,
                             fontWeight = FontWeight.Medium,
                             fontSize = 10.sp,
-                            color = GrayMedium
+                            color = ArkMuted
                         )
                     }
                     Text(
@@ -137,7 +137,7 @@ fun ResourceMetricHud(
                         fontFamily = ChakraPetchFontFamily,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
-                        color = PureWhite
+                        color = ArkInk
                     )
                 }
 
@@ -145,7 +145,7 @@ fun ResourceMetricHud(
                     modifier = Modifier
                         .width(1.dp)
                         .height(30.dp)
-                        .background(DarkCardBorder)
+                        .background(ArkBorder)
                 )
 
                 Column(
@@ -156,7 +156,7 @@ fun ResourceMetricHud(
                         Icon(
                             imageVector = Icons.Default.Storage,
                             contentDescription = "Clone APK size",
-                            tint = GraySubtle,
+                            tint = ArkSubtle,
                             modifier = Modifier.height(12.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
@@ -165,7 +165,7 @@ fun ResourceMetricHud(
                             fontFamily = ChakraPetchFontFamily,
                             fontWeight = FontWeight.Medium,
                             fontSize = 10.sp,
-                            color = GrayMedium
+                            color = ArkMuted
                         )
                     }
                     Text(
@@ -173,7 +173,7 @@ fun ResourceMetricHud(
                         fontFamily = ChakraPetchFontFamily,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
-                        color = SilverAccent
+                        color = ArkSoft
                     )
                 }
             }

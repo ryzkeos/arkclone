@@ -43,14 +43,14 @@ import com.arkeos.arkclone.engine.RealAppIconView
 import com.arkeos.arkclone.model.ClonedInstance
 import com.arkeos.arkclone.model.CloneInstallState
 import com.arkeos.arkclone.ui.theme.ChakraPetchFontFamily
-import com.arkeos.arkclone.ui.theme.DarkCardBorder
-import com.arkeos.arkclone.ui.theme.DarkSurface
-import com.arkeos.arkclone.ui.theme.DarkSurfaceVariant
-import com.arkeos.arkclone.ui.theme.GrayMedium
-import com.arkeos.arkclone.ui.theme.GraySubtle
-import com.arkeos.arkclone.ui.theme.PureBlack
-import com.arkeos.arkclone.ui.theme.PureWhite
-import com.arkeos.arkclone.ui.theme.SilverAccent
+import com.arkeos.arkclone.ui.theme.ArkBorder
+import com.arkeos.arkclone.ui.theme.ArkSurface
+import com.arkeos.arkclone.ui.theme.ArkSurfaceVariant
+import com.arkeos.arkclone.ui.theme.ArkMuted
+import com.arkeos.arkclone.ui.theme.ArkSubtle
+import com.arkeos.arkclone.ui.theme.ArkPaper
+import com.arkeos.arkclone.ui.theme.ArkInk
+import com.arkeos.arkclone.ui.theme.ArkSoft
 
 @Composable
 fun InstanceCard(
@@ -68,10 +68,10 @@ fun InstanceCard(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(DarkSurfaceVariant)
+            .background(ArkSurfaceVariant)
             .border(
                 1.dp,
-                if (isInstalled) PureWhite else DarkCardBorder,
+                if (isInstalled) ArkInk else ArkBorder,
                 RoundedCornerShape(12.dp)
             )
             .padding(14.dp)
@@ -98,28 +98,22 @@ fun InstanceCard(
                     Spacer(modifier = Modifier.width(10.dp))
 
                     Column(modifier = Modifier.weight(1f)) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "${instance.appName} #${instance.cloneNumber}",
-                                fontFamily = ChakraPetchFontFamily,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
-                                color = PureWhite,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f, fill = false)
-                            )
-                        }
+                        Text(
+                            text = instance.alias,
+                            fontFamily = ChakraPetchFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            color = ArkInk,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
 
                         Text(
-                            text = "${instance.alias} • ${instance.packageName}",
+                            text = instance.clonePackageName.ifBlank { instance.packageName },
                             fontFamily = ChakraPetchFontFamily,
                             fontWeight = FontWeight.Normal,
                             fontSize = 11.sp,
-                            color = GraySubtle,
+                            color = ArkSubtle,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -132,7 +126,7 @@ fun InstanceCard(
                         modifier = Modifier
                             .size(8.dp)
                             .clip(CircleShape)
-                            .background(if (isInstalled) PureWhite else GrayMedium)
+                            .background(if (isInstalled) ArkInk else ArkMuted)
                     )
 
                     Spacer(modifier = Modifier.width(6.dp))
@@ -143,7 +137,7 @@ fun InstanceCard(
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 10.sp,
                         letterSpacing = 0.5.sp,
-                        color = if (isInstalled) PureWhite else GrayMedium
+                        color = if (isInstalled) ArkInk else ArkMuted
                     )
 
                     Box {
@@ -154,7 +148,7 @@ fun InstanceCard(
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
                                 contentDescription = "Options",
-                                tint = GraySubtle,
+                                tint = ArkSubtle,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -163,15 +157,15 @@ fun InstanceCard(
                             expanded = showMenu,
                             onDismissRequest = { showMenu = false },
                             modifier = Modifier
-                                .background(DarkSurface)
-                                .border(1.dp, DarkCardBorder)
+                                .background(ArkSurface)
+                                .border(1.dp, ArkBorder)
                         ) {
                             DropdownMenuItem(
                                 text = {
                                     Text(
                                         "Launch Application",
                                         fontFamily = ChakraPetchFontFamily,
-                                        color = PureWhite,
+                                        color = ArkInk,
                                         fontSize = 12.sp
                                     )
                                 },
@@ -179,7 +173,7 @@ fun InstanceCard(
                                     Icon(
                                         Icons.Default.OpenInNew,
                                         contentDescription = null,
-                                        tint = PureWhite,
+                                        tint = ArkInk,
                                         modifier = Modifier.size(16.dp)
                                     )
                                 },
@@ -194,7 +188,7 @@ fun InstanceCard(
                                     Text(
                                         "App Info (Settings)",
                                         fontFamily = ChakraPetchFontFamily,
-                                        color = PureWhite,
+                                        color = ArkInk,
                                         fontSize = 12.sp
                                     )
                                 },
@@ -202,7 +196,7 @@ fun InstanceCard(
                                     Icon(
                                         Icons.Default.Settings,
                                         contentDescription = null,
-                                        tint = PureWhite,
+                                        tint = ArkInk,
                                         modifier = Modifier.size(16.dp)
                                     )
                                 },
@@ -217,7 +211,7 @@ fun InstanceCard(
                                     Text(
                                         "Delete Virtual Enclave",
                                         fontFamily = ChakraPetchFontFamily,
-                                        color = PureWhite,
+                                        color = ArkInk,
                                         fontSize = 12.sp
                                     )
                                 },
@@ -225,7 +219,7 @@ fun InstanceCard(
                                     Icon(
                                         Icons.Default.Delete,
                                         contentDescription = null,
-                                        tint = GrayMedium,
+                                        tint = ArkMuted,
                                         modifier = Modifier.size(16.dp)
                                     )
                                 },
@@ -246,8 +240,8 @@ fun InstanceCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(6.dp))
-                    .background(PureBlack)
-                    .border(1.dp, DarkCardBorder, RoundedCornerShape(6.dp))
+                    .background(ArkPaper)
+                    .border(1.dp, ArkBorder, RoundedCornerShape(6.dp))
                     .padding(horizontal = 10.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -258,14 +252,14 @@ fun InstanceCard(
                         fontFamily = ChakraPetchFontFamily,
                         fontWeight = FontWeight.Medium,
                         fontSize = 10.sp,
-                        color = GrayMedium
+                        color = ArkMuted
                     )
                     Text(
                         text = "v${instance.realVersionName} (${instance.realApkSizeBytes / (1024 * 1024)} MB)",
                         fontFamily = ChakraPetchFontFamily,
                         fontWeight = FontWeight.Bold,
                         fontSize = 10.sp,
-                        color = PureWhite
+                        color = ArkInk
                     )
                 }
             }
@@ -282,7 +276,7 @@ fun InstanceCard(
                     modifier = Modifier
                         .weight(1.3f)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(PureWhite)
+                        .background(ArkInk)
                         .clickable { onLaunchRealAppDirectly() }
                         .padding(vertical = 10.dp)
                         .testTag("launch_button_${instance.id}"),
@@ -292,7 +286,7 @@ fun InstanceCard(
                         Icon(
                             imageVector = Icons.Default.PlayArrow,
                             contentDescription = "Launch",
-                            tint = PureBlack,
+                            tint = ArkPaper,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
@@ -302,7 +296,7 @@ fun InstanceCard(
                             fontWeight = FontWeight.Bold,
                             fontSize = 12.sp,
                             letterSpacing = 1.sp,
-                            color = PureBlack
+                            color = ArkPaper
                         )
                     }
                 }
@@ -311,8 +305,8 @@ fun InstanceCard(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
-                        .background(DarkSurface)
-                        .border(1.dp, DarkCardBorder, RoundedCornerShape(8.dp))
+                        .background(ArkSurface)
+                        .border(1.dp, ArkBorder, RoundedCornerShape(8.dp))
                         .clickable { onLaunch() }
                         .padding(horizontal = 12.dp, vertical = 10.dp)
                         .testTag("enclave_console_button_${instance.id}"),
@@ -324,7 +318,7 @@ fun InstanceCard(
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 11.sp,
                         letterSpacing = 0.5.sp,
-                        color = SilverAccent
+                        color = ArkSoft
                     )
                 }
             }

@@ -5,28 +5,32 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.arkeos.arkclone.engine.ArkCloneViewModel
 import com.arkeos.arkclone.model.CloneInstallState
+import com.arkeos.arkclone.ui.components.ArkToastHost
 import com.arkeos.arkclone.ui.components.StartupSplash
 import com.arkeos.arkclone.ui.screens.CloneAppDialog
 import com.arkeos.arkclone.ui.screens.CloneDetailsScreen
 import com.arkeos.arkclone.ui.screens.DashboardScreen
 import com.arkeos.arkclone.ui.theme.ArkCloneTheme
-import com.arkeos.arkclone.ui.theme.PureBlack
+import com.arkeos.arkclone.ui.theme.ArkPaper
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
@@ -39,6 +43,17 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val isDarkMode by viewModel.isDarkMode.collectAsState()
+
+            DisposableEffect(isDarkMode) {
+                val transparent = android.graphics.Color.TRANSPARENT
+                val barStyle = if (isDarkMode) {
+                    SystemBarStyle.dark(transparent)
+                } else {
+                    SystemBarStyle.light(transparent, transparent)
+                }
+                enableEdgeToEdge(statusBarStyle = barStyle, navigationBarStyle = barStyle)
+                onDispose { }
+            }
 
             ArkCloneTheme(darkTheme = isDarkMode) {
                 MainAppContent(
@@ -69,6 +84,7 @@ fun MainAppContent(
     val isScanning by viewModel.isScanning.collectAsState()
 
     val showCloneDialog by viewModel.showCloneDialog.collectAsState()
+    val toast by viewModel.toast.collectAsState()
 
     val context = LocalContext.current
     val freeRamBytes by produceState(initialValue = 0L) {
@@ -91,7 +107,7 @@ fun MainAppContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(PureBlack)
+            .background(ArkPaper)
     ) {
         if (currentInstance != null) {
             CloneDetailsScreen(
@@ -136,6 +152,12 @@ fun MainAppContent(
                 }
             )
         }
+
+        ArkToastHost(
+            toast = toast,
+            onDismiss = { id -> viewModel.dismissToast(id) },
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
 
         // Startup splash overlay
         if (isSplashActive) {

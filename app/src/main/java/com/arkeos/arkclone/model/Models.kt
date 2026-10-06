@@ -8,6 +8,14 @@ enum class CloneInstallState(val label: String) {
     NOT_INSTALLED("Not installed")
 }
 
+enum class ToastType { SUCCESS, ERROR, INFO }
+
+data class ArkToast(
+    val id: Long,
+    val message: String,
+    val type: ToastType
+)
+
 enum class AppCategory(val title: String) {
     ALL("All"),
     SOCIAL("Social"),

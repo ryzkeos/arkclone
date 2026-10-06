@@ -24,10 +24,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkeos.arkclone.ui.theme.ChakraPetchFontFamily
-import com.arkeos.arkclone.ui.theme.DarkCardBorder
-import com.arkeos.arkclone.ui.theme.DarkSurface
-import com.arkeos.arkclone.ui.theme.PureBlack
-import com.arkeos.arkclone.ui.theme.PureWhite
+import com.arkeos.arkclone.ui.theme.ArkBorder
+import com.arkeos.arkclone.ui.theme.ArkSurface
+import com.arkeos.arkclone.ui.theme.ArkPaper
+import com.arkeos.arkclone.ui.theme.ArkInk
 
 object AppIconCache {
     private val iconMap = mutableMapOf<String, Bitmap?>()
@@ -82,7 +82,7 @@ fun RealAppIconView(
             modifier = modifier
                 .size(size)
                 .clip(RoundedCornerShape(shapeRadius))
-                .border(1.dp, DarkCardBorder, RoundedCornerShape(shapeRadius))
+                .border(1.dp, ArkBorder, RoundedCornerShape(shapeRadius))
         )
     } else {
         // Futuristic Ark monochrome monogram fallback
@@ -90,8 +90,8 @@ fun RealAppIconView(
             modifier = modifier
                 .size(size)
                 .clip(RoundedCornerShape(shapeRadius))
-                .background(DarkSurface)
-                .border(1.dp, DarkCardBorder, RoundedCornerShape(shapeRadius)),
+                .background(ArkSurface)
+                .border(1.dp, ArkBorder, RoundedCornerShape(shapeRadius)),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -99,7 +99,7 @@ fun RealAppIconView(
                 fontFamily = ChakraPetchFontFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = (size.value * 0.38f).sp,
-                color = PureWhite
+                color = ArkInk
             )
         }
     }
