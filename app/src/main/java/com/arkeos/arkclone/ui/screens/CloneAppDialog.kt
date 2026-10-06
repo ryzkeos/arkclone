@@ -50,7 +50,6 @@ import androidx.compose.ui.window.Dialog
 import com.arkeos.arkclone.engine.RealAppIconView
 import com.arkeos.arkclone.model.AppCategory
 import com.arkeos.arkclone.model.RealInstalledApk
-import com.arkeos.arkclone.model.ResourcePriority
 import com.arkeos.arkclone.ui.theme.ChakraPetchFontFamily
 import com.arkeos.arkclone.ui.theme.DarkCardBorder
 import com.arkeos.arkclone.ui.theme.DarkSurface
@@ -71,8 +70,7 @@ fun CloneAppDialog(
         targetApk: RealInstalledApk,
         count: Int,
         alias: String,
-        category: AppCategory,
-        priority: ResourcePriority
+        category: AppCategory
     ) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
@@ -80,7 +78,6 @@ fun CloneAppDialog(
     var cloneCount by remember { mutableIntStateOf(1) }
     var customAlias by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf(AppCategory.TOOLS) }
-    var selectedPriority by remember { mutableStateOf(ResourcePriority.BALANCED) }
 
     val filteredApps = remember(searchQuery, availableApps) {
         if (searchQuery.isBlank()) availableApps
@@ -473,8 +470,7 @@ fun CloneAppDialog(
                                     app,
                                     cloneCount,
                                     customAlias.ifBlank { "${app.appName} Space" },
-                                    selectedCategory,
-                                    selectedPriority
+                                    selectedCategory
                                 )
                             }
                         }

@@ -57,7 +57,6 @@ import com.arkeos.arkclone.ui.theme.SilverAccent
 fun DashboardScreen(
     instances: List<ClonedInstance>,
     installedApps: List<RealInstalledApk>,
-    unreadCount: Int,
     isDarkMode: Boolean,
     selectedCategory: AppCategory,
     installedCount: Int,
@@ -66,7 +65,6 @@ fun DashboardScreen(
     onToggleDarkMode: () -> Unit,
     onCategorySelect: (AppCategory) -> Unit,
     onOpenCloneDialog: () -> Unit,
-    onOpenNotificationCenter: () -> Unit,
     onQuickClone: (RealInstalledApk) -> Unit,
     onLaunchInstance: (String) -> Unit,
     onLaunchRealAppDirectly: (String) -> Unit,
@@ -83,10 +81,8 @@ fun DashboardScreen(
         containerColor = PureBlack,
         topBar = {
             DashboardTopBar(
-                unreadNotificationsCount = unreadCount,
                 isDarkMode = isDarkMode,
-                onToggleDarkMode = onToggleDarkMode,
-                onNotificationsClick = onOpenNotificationCenter
+                onToggleDarkMode = onToggleDarkMode
             )
         },
         floatingActionButton = {

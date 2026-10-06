@@ -341,7 +341,7 @@ fun InstanceCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "V-SPACE HUD",
+                        text = "DETAILS",
                         fontFamily = ChakraPetchFontFamily,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 11.sp,

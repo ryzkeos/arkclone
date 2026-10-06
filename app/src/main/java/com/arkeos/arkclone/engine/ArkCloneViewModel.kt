@@ -12,11 +12,7 @@ import com.arkeos.arkclone.data.CloneStorage
 import com.arkeos.arkclone.model.AppCategory
 import com.arkeos.arkclone.model.CloneInstallState
 import com.arkeos.arkclone.model.ClonedInstance
-import com.arkeos.arkclone.model.InstanceStatus
-import com.arkeos.arkclone.model.NotificationItem
 import com.arkeos.arkclone.model.RealInstalledApk
-import com.arkeos.arkclone.model.ResourcePriority
-import com.arkeos.arkclone.model.VirtualUserSession
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.first
@@ -31,16 +27,12 @@ import java.util.UUID
 class ArkCloneViewModel(application: Application) : AndroidViewModel(application) {
 
     private val storage = CloneStorage(application)
-    private val notificationEngine = ArkNotificationEngine(application)
     private val appScanner = InstalledAppScanner(application)
     private val cloneInstaller = CloneInstaller(application)
     private val repackager = ApkRepackager(CloneSigner())
 
     private val _instances = MutableStateFlow<List<ClonedInstance>>(emptyList())
     val instances: StateFlow<List<ClonedInstance>> = _instances.asStateFlow()
-
-    private val _notifications = MutableStateFlow<List<NotificationItem>>(emptyList())
-    val notifications: StateFlow<List<NotificationItem>> = _notifications.asStateFlow()
 
     private val _activeInstanceId = MutableStateFlow<String?>(null)
     val activeInstanceId: StateFlow<String?> = _activeInstanceId.asStateFlow()
@@ -61,11 +53,6 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
     private val _showCloneDialog = MutableStateFlow(false)
     val showCloneDialog: StateFlow<Boolean> = _showCloneDialog.asStateFlow()
 
-    private val _showSwitcherSheet = MutableStateFlow(false)
-    val showSwitcherSheet: StateFlow<Boolean> = _showSwitcherSheet.asStateFlow()
-
-    private val _showNotificationCenter = MutableStateFlow(false)
-    val showNotificationCenter: StateFlow<Boolean> = _showNotificationCenter.asStateFlow()
 
     init {
         loadData()
@@ -82,8 +69,7 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
                 if (inst.clonePackageName == event.packageName) {
                     inst.copy(
                         installState = event.state,
-                        installError = if (event.state == CloneInstallState.FAILED) event.message else "",
-                        isFreshlyInstalled = if (event.state == CloneInstallState.INSTALLED) true else inst.isFreshlyInstalled
+                        installError = if (event.state == CloneInstallState.FAILED) event.message else ""
                     )
                 } else inst
             }
@@ -118,7 +104,6 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
     private fun loadData() {
         val loaded = storage.loadInstances()
         _instances.value = loaded
-        _notifications.value = storage.loadNotifications()
         _isDarkMode.value = storage.isDarkMode()
     }
 
@@ -145,43 +130,21 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
         _showCloneDialog.value = show
     }
 
-    fun setShowSwitcherSheet(show: Boolean) {
-        _showSwitcherSheet.value = show
+    fun openDetails(instanceId: String) {
+        _activeInstanceId.value = instanceId
     }
 
-    fun setShowNotificationCenter(show: Boolean) {
-        _showNotificationCenter.value = show
-    }
-
-    fun launchInstance(instanceId: String, launchRealApp: Boolean = true) {
+    fun launchInstance(instanceId: String) {
         val instance = _instances.value.find { it.id == instanceId } ?: return
-
         _instances.update { list ->
             list.map { inst ->
-                if (inst.id == instanceId) {
-                    inst.copy(
-                        status = InstanceStatus.RUNNING,
-                        memoryUsageMb = inst.resourcePriority.baseMemoryMb,
-                        lastActiveAt = System.currentTimeMillis()
-                    )
-                } else inst
+                if (inst.id == instanceId) inst.copy(lastActiveAt = System.currentTimeMillis()) else inst
             }
         }
-        _activeInstanceId.value = instanceId
-        _showSwitcherSheet.value = false
         storage.saveInstances(_instances.value)
-
-        if (launchRealApp) {
-            startRealApkProcess(instance)
-        }
+        startRealApkProcess(instance)
     }
 
-    /**
-     * Launches the real APK in a distinct Android System Task.
-     * With FLAG_ACTIVITY_NEW_DOCUMENT and FLAG_ACTIVITY_MULTIPLE_TASK,
-     * Android creates a SEPARATE task card in the phone's Launcher Recents / App Switcher,
-     * so each clone can be switched between directly from the phone's system recents screen!
-     */
     fun startRealApkProcess(instance: ClonedInstance): Boolean {
         val context = getApplication<Application>()
         val pm = context.packageManager
@@ -218,68 +181,12 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun switchInstance(targetInstanceId: String) {
-        launchInstance(targetInstanceId, launchRealApp = false)
-    }
-
-    fun exitSandbox() {
+    fun closeDetails() {
         _activeInstanceId.value = null
-    }
-
-    fun toggleInstanceSleep(instanceId: String) {
-        _instances.update { list ->
-            list.map { inst ->
-                if (inst.id == instanceId) {
-                    if (inst.status == InstanceStatus.SLEEPING) {
-                        inst.copy(
-                            status = InstanceStatus.RUNNING,
-                            memoryUsageMb = inst.resourcePriority.baseMemoryMb,
-                            lastActiveAt = System.currentTimeMillis()
-                        )
-                    } else {
-                        inst.copy(
-                            status = InstanceStatus.SLEEPING,
-                            memoryUsageMb = 2.4f
-                        )
-                    }
-                } else inst
-            }
-        }
-        storage.saveInstances(_instances.value)
-    }
-
-    fun clearSingleInstanceCache(instanceId: String) {
-        val instance = _instances.value.find { it.id == instanceId }
-        if (instance != null) {
-            try {
-                val cacheDir = File(instance.isolatedStoragePath, "cache")
-                if (cacheDir.exists()) {
-                    cacheDir.listFiles()?.forEach { it.deleteRecursively() }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-
-        _instances.update { list ->
-            list.map { inst ->
-                if (inst.id == instanceId) {
-                    inst.copy(cacheSizeBytes = 120_000L)
-                } else inst
-            }
-        }
-        storage.saveInstances(_instances.value)
     }
 
     fun deleteInstance(instanceId: String) {
         val instance = _instances.value.find { it.id == instanceId }
-        if (instance != null) {
-            try {
-                File(instance.isolatedStoragePath).deleteRecursively()
-            } catch (e: Exception) {
-                // Ignore
-            }
-        }
 
         if (instance != null && instance.clonePackageName.isNotBlank() &&
             cloneInstaller.isInstalled(instance.clonePackageName)
@@ -291,9 +198,7 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
             _activeInstanceId.value = null
         }
         _instances.update { it.filter { inst -> inst.id != instanceId } }
-        _notifications.update { it.filter { notif -> notif.instanceId != instanceId } }
         storage.saveInstances(_instances.value)
-        storage.saveNotifications(_notifications.value)
     }
 
     fun quickCloneSuggestedApk(targetApk: RealInstalledApk) {
@@ -301,8 +206,7 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
             targetApk = targetApk,
             cloneCount = 1,
             customAlias = "${targetApk.appName} Space",
-            customCategory = targetApk.category,
-            priority = ResourcePriority.BALANCED
+            customCategory = targetApk.category
         )
     }
 
@@ -310,8 +214,7 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
         targetApk: RealInstalledApk,
         cloneCount: Int = 1,
         customAlias: String = "",
-        customCategory: AppCategory = targetApk.category,
-        priority: ResourcePriority = ResourcePriority.BALANCED
+        customCategory: AppCategory = targetApk.category
     ) {
         if (!cloneInstaller.canInstall()) {
             toast("Allow Ark Clone to install apps, then try again")
@@ -334,21 +237,12 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
                 }
                 val clonePackage = clonePackageFor(targetApk.packageName, number)
 
-                val badge = when (number) {
-                    1 -> "MAIN"
-                    2 -> "WORK"
-                    3 -> "ALT"
-                    4 -> "VIP"
-                    else -> "CLONE"
-                }
+                val badge = "CLONE"
                 val alias = if (customAlias.isNotBlank() && i == 0) {
                     customAlias
                 } else {
                     "${targetApk.appName} Clone #$number"
                 }
-
-                val spaceDir = File(context.filesDir, "vspaces/${clonePackage}")
-                spaceDir.mkdirs()
 
                 val instance = ClonedInstance(
                     id = "inst_${clonePackage.replace(".", "_")}_" + UUID.randomUUID().toString().substring(0, 6),
@@ -358,19 +252,12 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
                     alias = alias,
                     badgeTag = badge,
                     category = customCategory,
-                    status = InstanceStatus.IDLE,
-                    memoryUsageMb = priority.baseMemoryMb,
-                    resourcePriority = priority,
-                    isolatedStoragePath = spaceDir.absolutePath,
-                    userSession = VirtualUserSession(statusBio = "Freshly installed isolated container"),
-                    isFreshlyInstalled = true,
                     realSourceApkPath = targetApk.sourceApkPath,
                     realApkSizeBytes = targetApk.apkSizeBytes,
                     realVersionName = targetApk.versionName,
                     realVersionCode = targetApk.versionCode,
                     targetSdkVersion = targetApk.targetSdkVersion,
                     mainActivityName = targetApk.mainActivityName,
-                    virtualUid = 10000 + number,
                     clonePackageName = clonePackage,
                     installState = CloneInstallState.PREPARING
                 )
@@ -417,156 +304,6 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
     }
 
     private fun clonePackageFor(original: String, number: Int): String = "$original.clone$number"
-
-    fun completeInstanceSetup(instanceId: String, username: String, emailOrPhone: String, notes: String) {
-        val target = _instances.value.find { it.id == instanceId } ?: return
-        val cleanUsername = if (username.isBlank()) "${target.appName} #${target.cloneNumber}" else username
-        val cleanHandle = "@" + cleanUsername.lowercase().replace(" ", "_")
-
-        val updatedSession = VirtualUserSession(
-            username = cleanUsername,
-            handle = cleanHandle,
-            statusBio = "Active Isolated Instance #${target.cloneNumber}",
-            isAccountSetupComplete = true,
-            registeredPhoneOrEmail = emailOrPhone,
-            isolatedNotes = notes,
-            storageFilesCount = 4,
-            recentActivityTimestamp = System.currentTimeMillis()
-        )
-
-        try {
-            val userFile = File(target.isolatedStoragePath, "files/user_profile.json")
-            userFile.writeText("{\"username\":\"$cleanUsername\",\"email\":\"$emailOrPhone\",\"clone\":${target.cloneNumber}}")
-            if (notes.isNotBlank()) {
-                File(target.isolatedStoragePath, "files/isolated_notes.txt").writeText(notes)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-        _instances.update { list ->
-            list.map { inst ->
-                if (inst.id == instanceId) {
-                    inst.copy(
-                        userSession = updatedSession,
-                        isFreshlyInstalled = false,
-                        dataSizeBytes = 3_400_000L,
-                        lastActiveAt = System.currentTimeMillis()
-                    )
-                } else inst
-            }
-        }
-        storage.saveInstances(_instances.value)
-    }
-
-    fun resetInstanceToFreshInstall(instanceId: String) {
-        val target = _instances.value.find { it.id == instanceId } ?: return
-
-        try {
-            val dir = File(target.isolatedStoragePath)
-            if (dir.exists()) {
-                dir.deleteRecursively()
-            }
-            dir.mkdirs()
-            File(dir, "files").mkdirs()
-            File(dir, "cache").mkdirs()
-            File(dir, "databases").mkdirs()
-            File(dir, "shared_prefs").mkdirs()
-            File(dir, "notifs").mkdirs()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-        val freshSession = VirtualUserSession(
-            username = "",
-            handle = "",
-            statusBio = "Freshly installed isolated container",
-            isAccountSetupComplete = false,
-            registeredPhoneOrEmail = "",
-            isolatedNotes = "",
-            storageFilesCount = 0,
-            recentActivityTimestamp = System.currentTimeMillis()
-        )
-
-        _instances.update { list ->
-            list.map { inst ->
-                if (inst.id == instanceId) {
-                    inst.copy(
-                        userSession = freshSession,
-                        isFreshlyInstalled = true,
-                        cacheSizeBytes = 0L,
-                        dataSizeBytes = 1_200_000L,
-                        pendingNotifications = 0,
-                        lastActiveAt = System.currentTimeMillis()
-                    )
-                } else inst
-            }
-        }
-        storage.saveInstances(_instances.value)
-    }
-
-    fun updateInstanceNotes(instanceId: String, notes: String) {
-        val target = _instances.value.find { it.id == instanceId } ?: return
-
-        try {
-            File(target.isolatedStoragePath, "files/isolated_notes.txt").writeText(notes)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-        _instances.update { list ->
-            list.map { inst ->
-                if (inst.id == instanceId) {
-                    inst.copy(
-                        userSession = inst.userSession.copy(
-                            isolatedNotes = notes,
-                            recentActivityTimestamp = System.currentTimeMillis()
-                        ),
-                        dataSizeBytes = inst.dataSizeBytes + (notes.length * 2)
-                    )
-                } else inst
-            }
-        }
-        storage.saveInstances(_instances.value)
-    }
-
-    fun simulateNotificationForInstance(instanceId: String, title: String, message: String) {
-        val target = _instances.value.find { it.id == instanceId } ?: return
-
-        val newNotif = NotificationItem(
-            id = UUID.randomUUID().toString(),
-            instanceId = target.id,
-            appName = target.appName,
-            cloneAlias = target.alias,
-            badgeTag = target.badgeTag,
-            title = title,
-            body = message,
-            timestamp = System.currentTimeMillis(),
-            isRead = false
-        )
-
-        val updatedNotifs = listOf(newNotif) + _notifications.value
-        _notifications.value = updatedNotifs
-        storage.saveNotifications(updatedNotifs)
-
-        _instances.update { list ->
-            list.map { inst ->
-                if (inst.id == instanceId) {
-                    inst.copy(pendingNotifications = inst.pendingNotifications + 1)
-                } else inst
-            }
-        }
-        storage.saveInstances(_instances.value)
-
-        notificationEngine.postInstanceNotification(target, title, message)
-    }
-
-    fun clearAllNotifications() {
-        _notifications.value = emptyList()
-        storage.saveNotifications(emptyList())
-        _instances.update { list -> list.map { it.copy(pendingNotifications = 0) } }
-        storage.saveInstances(_instances.value)
-    }
 
     fun formatBytes(bytes: Long): String {
         val mb = bytes.toDouble() / (1024 * 1024)
