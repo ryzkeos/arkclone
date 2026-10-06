@@ -46,7 +46,6 @@ class ExampleRobolectricTest {
       packageName = "com.android.chrome",
       cloneNumber = 1,
       alias = "Work Chrome",
-      badgeTag = "WORK",
       category = AppCategory.TOOLS,
       realSourceApkPath = "/data/app/chrome.apk"
     )

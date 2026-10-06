@@ -237,7 +237,6 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
                 }
                 val clonePackage = clonePackageFor(targetApk.packageName, number)
 
-                val badge = "CLONE"
                 val alias = if (customAlias.isNotBlank() && i == 0) {
                     customAlias
                 } else {
@@ -250,7 +249,6 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
                     packageName = targetApk.packageName,
                     cloneNumber = number,
                     alias = alias,
-                    badgeTag = badge,
                     category = customCategory,
                     realSourceApkPath = targetApk.sourceApkPath,
                     realApkSizeBytes = targetApk.apkSizeBytes,

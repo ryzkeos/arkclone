@@ -112,28 +112,6 @@ fun InstanceCard(
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f, fill = false)
                             )
-
-                            Spacer(modifier = Modifier.width(6.dp))
-
-                            // Badge Tag
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(PureBlack)
-                                    .border(1.dp, DarkCardBorder, RoundedCornerShape(4.dp))
-                                    .padding(horizontal = 5.dp, vertical = 2.dp)
-                            ) {
-                                Text(
-                                    text = instance.badgeTag,
-                                    fontFamily = ChakraPetchFontFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 9.sp,
-                                    letterSpacing = 0.5.sp,
-                                    color = SilverAccent,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
                         }
 
                         Text(
