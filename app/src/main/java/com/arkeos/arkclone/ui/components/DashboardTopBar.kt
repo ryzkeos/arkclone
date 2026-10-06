@@ -16,9 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -36,15 +33,12 @@ import com.arkeos.arkclone.R
 import com.arkeos.arkclone.ui.theme.ChakraPetchFontFamily
 import com.arkeos.arkclone.ui.theme.DarkCardBorder
 import com.arkeos.arkclone.ui.theme.DarkSurface
-import com.arkeos.arkclone.ui.theme.PureBlack
 import com.arkeos.arkclone.ui.theme.PureWhite
 
 @Composable
 fun DashboardTopBar(
-    unreadNotificationsCount: Int,
     isDarkMode: Boolean,
-    onToggleDarkMode: () -> Unit,
-    onNotificationsClick: () -> Unit
+    onToggleDarkMode: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -99,37 +93,6 @@ fun DashboardTopBar(
                     tint = PureWhite,
                     modifier = Modifier.size(20.dp)
                 )
-            }
-
-            // Notification Bell with Badge
-            IconButton(
-                onClick = onNotificationsClick,
-                modifier = Modifier.testTag("notifications_center_button")
-            ) {
-                BadgedBox(
-                    badge = {
-                        if (unreadNotificationsCount > 0) {
-                            Badge(
-                                containerColor = PureWhite,
-                                contentColor = PureBlack
-                            ) {
-                                Text(
-                                    text = unreadNotificationsCount.toString(),
-                                    fontFamily = ChakraPetchFontFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 10.sp
-                                )
-                            }
-                        }
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Notifications,
-                        contentDescription = "Notification Center",
-                        tint = PureWhite,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
             }
         }
     }

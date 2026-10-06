@@ -5,9 +5,6 @@ import androidx.test.core.app.ApplicationProvider
 import com.arkeos.arkclone.data.CloneStorage
 import com.arkeos.arkclone.model.AppCategory
 import com.arkeos.arkclone.model.ClonedInstance
-import com.arkeos.arkclone.model.InstanceStatus
-import com.arkeos.arkclone.model.ResourcePriority
-import com.arkeos.arkclone.model.VirtualUserSession
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -51,15 +48,6 @@ class ExampleRobolectricTest {
       alias = "Work Chrome",
       badgeTag = "WORK",
       category = AppCategory.TOOLS,
-      status = InstanceStatus.IDLE,
-      memoryUsageMb = 24f,
-      cacheSizeBytes = 12000L,
-      dataSizeBytes = 30000L,
-      notificationsEnabled = true,
-      pendingNotifications = 0,
-      resourcePriority = ResourcePriority.BALANCED,
-      isolatedStoragePath = "/vspaces/test",
-      userSession = VirtualUserSession(),
       realSourceApkPath = "/data/app/chrome.apk"
     )
 
