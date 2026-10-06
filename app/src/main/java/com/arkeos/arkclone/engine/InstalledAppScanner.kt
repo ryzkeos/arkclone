@@ -50,7 +50,6 @@ class InstalledAppScanner(private val context: Context) {
                 }
 
                 val category = categorize(appName, pkgName)
-                val badge = if (isSystem) "SYS" else "APK"
 
                 result.add(
                     RealInstalledApk(
@@ -59,11 +58,10 @@ class InstalledAppScanner(private val context: Context) {
                         versionName = versionName,
                         versionCode = versionCode,
                         sourceApkPath = sourceDir,
-                        apkSizeBytes = if (apkSize > 0) apkSize else 24_000_000L,
+                        apkSizeBytes = apkSize,
                         isSystemApp = isSystem,
                         targetSdkVersion = appInfo.targetSdkVersion,
                         category = category,
-                        defaultBadge = badge,
                         mainActivityName = resolveInfo.activityInfo.name,
                         hasLaunchIntent = true,
                         splitSourcePaths = appInfo.splitSourceDirs?.toList() ?: emptyList()
@@ -108,11 +106,10 @@ class InstalledAppScanner(private val context: Context) {
                             versionName = vName,
                             versionCode = vCode,
                             sourceApkPath = sourceDir,
-                            apkSizeBytes = if (apkSize > 0) apkSize else 18_000_000L,
+                            apkSizeBytes = apkSize,
                             isSystemApp = isSystem,
                             targetSdkVersion = appInfo.targetSdkVersion,
                             category = categorize(appName, pkgName),
-                            defaultBadge = if (isSystem) "SYS" else "APK",
                             mainActivityName = "",
                             hasLaunchIntent = (launchIntent != null),
                             splitSourcePaths = appInfo.splitSourceDirs?.toList() ?: emptyList()

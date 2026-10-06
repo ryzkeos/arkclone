@@ -90,9 +90,7 @@ fun StartupSplash(
                 Image(
                     painter = painterResource(id = R.drawable.ic_ark_clone_logo),
                     contentDescription = "Ark Clone Emblem",
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(RoundedCornerShape(24.dp))
+                    modifier = Modifier.size(140.dp)
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))

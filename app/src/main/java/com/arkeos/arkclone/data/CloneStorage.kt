@@ -38,7 +38,6 @@ class CloneStorage(private val context: Context) {
                     packageName = obj.getString("packageName"),
                     cloneNumber = obj.getInt("cloneNumber"),
                     alias = obj.getString("alias"),
-                    badgeTag = obj.getString("badgeTag"),
                     category = AppCategory.valueOf(obj.optString("category", AppCategory.TOOLS.name)),
                     createdAt = obj.optLong("createdAt", System.currentTimeMillis()),
                     lastActiveAt = obj.optLong("lastActiveAt", System.currentTimeMillis()),
@@ -74,7 +73,6 @@ class CloneStorage(private val context: Context) {
                 put("packageName", inst.packageName)
                 put("cloneNumber", inst.cloneNumber)
                 put("alias", inst.alias)
-                put("badgeTag", inst.badgeTag)
                 put("category", inst.category.name)
                 put("createdAt", inst.createdAt)
                 put("lastActiveAt", inst.lastActiveAt)

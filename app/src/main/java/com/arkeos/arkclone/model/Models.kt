@@ -22,7 +22,6 @@ data class ClonedInstance(
     val packageName: String,
     val cloneNumber: Int,
     val alias: String,
-    val badgeTag: String,
     val category: AppCategory,
     val createdAt: Long = System.currentTimeMillis(),
     val lastActiveAt: Long = System.currentTimeMillis(),
@@ -47,7 +46,6 @@ data class RealInstalledApk(
     val isSystemApp: Boolean,
     val targetSdkVersion: Int,
     val category: AppCategory,
-    val defaultBadge: String,
     val mainActivityName: String = "",
     val hasLaunchIntent: Boolean = true,
     val splitSourcePaths: List<String> = emptyList()

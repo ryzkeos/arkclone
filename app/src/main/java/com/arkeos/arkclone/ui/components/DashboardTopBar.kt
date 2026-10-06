@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.sp
 import com.arkeos.arkclone.R
 import com.arkeos.arkclone.ui.theme.ChakraPetchFontFamily
 import com.arkeos.arkclone.ui.theme.DarkCardBorder
-import com.arkeos.arkclone.ui.theme.DarkSurface
+import com.arkeos.arkclone.ui.theme.PureBlack
 import com.arkeos.arkclone.ui.theme.PureWhite
 
 @Composable
@@ -43,7 +43,7 @@ fun DashboardTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(DarkSurface)
+            .background(PureBlack)
             .statusBarsPadding()
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -55,10 +55,7 @@ fun DashboardTopBar(
             Image(
                 painter = painterResource(id = R.drawable.ic_ark_clone_logo),
                 contentDescription = "Ark Clone Logo",
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .border(1.dp, DarkCardBorder, RoundedCornerShape(8.dp))
+                modifier = Modifier.size(40.dp)
             )
 
             Spacer(modifier = Modifier.width(12.dp))
