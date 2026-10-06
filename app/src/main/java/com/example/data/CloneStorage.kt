@@ -46,11 +46,14 @@ class CloneStorage(private val context: Context) {
                 val obj = array.getJSONObject(i)
                 val userSessionObj = obj.optJSONObject("userSession") ?: JSONObject()
                 val session = VirtualUserSession(
-                    username = userSessionObj.optString("username", "ArkUser"),
-                    handle = userSessionObj.optString("handle", "@ark_user"),
-                    statusBio = userSessionObj.optString("statusBio", "Virtual Space Active"),
-                    unreadMessagesCount = userSessionObj.optInt("unreadMessagesCount", 0),
-                    storageFilesCount = userSessionObj.optInt("storageFilesCount", 14)
+                    username = userSessionObj.optString("username", ""),
+                    handle = userSessionObj.optString("handle", ""),
+                    statusBio = userSessionObj.optString("statusBio", "Fresh Isolated Space"),
+                    isAccountSetupComplete = userSessionObj.optBoolean("isAccountSetupComplete", false),
+                    registeredPhoneOrEmail = userSessionObj.optString("registeredPhoneOrEmail", ""),
+                    isolatedNotes = userSessionObj.optString("isolatedNotes", ""),
+                    storageFilesCount = userSessionObj.optInt("storageFilesCount", 0),
+                    recentActivityTimestamp = userSessionObj.optLong("recentActivityTimestamp", System.currentTimeMillis())
                 )
 
                 val instance = ClonedInstance(
@@ -62,9 +65,9 @@ class CloneStorage(private val context: Context) {
                     badgeTag = obj.getString("badgeTag"),
                     category = AppCategory.valueOf(obj.optString("category", AppCategory.TOOLS.name)),
                     status = InstanceStatus.valueOf(obj.optString("status", InstanceStatus.IDLE.name)),
-                    memoryUsageMb = obj.optDouble("memoryUsageMb", 22.0).toFloat(),
-                    cacheSizeBytes = obj.optLong("cacheSizeBytes", 24_500_000L),
-                    dataSizeBytes = obj.optLong("dataSizeBytes", 58_000_000L),
+                    memoryUsageMb = obj.optDouble("memoryUsageMb", 14.0).toFloat(),
+                    cacheSizeBytes = obj.optLong("cacheSizeBytes", 0L),
+                    dataSizeBytes = obj.optLong("dataSizeBytes", 1_200_000L),
                     notificationsEnabled = obj.optBoolean("notificationsEnabled", true),
                     pendingNotifications = obj.optInt("pendingNotifications", 0),
                     resourcePriority = ResourcePriority.valueOf(
@@ -74,6 +77,7 @@ class CloneStorage(private val context: Context) {
                     userSession = session,
                     createdAt = obj.optLong("createdAt", System.currentTimeMillis()),
                     lastActiveAt = obj.optLong("lastActiveAt", System.currentTimeMillis()),
+                    isFreshlyInstalled = obj.optBoolean("isFreshlyInstalled", true),
                     realSourceApkPath = obj.optString("realSourceApkPath", ""),
                     realApkSizeBytes = obj.optLong("realApkSizeBytes", 24_000_000L),
                     realVersionName = obj.optString("realVersionName", "1.0"),
@@ -113,6 +117,7 @@ class CloneStorage(private val context: Context) {
                 put("isolatedStoragePath", inst.isolatedStoragePath)
                 put("createdAt", inst.createdAt)
                 put("lastActiveAt", inst.lastActiveAt)
+                put("isFreshlyInstalled", inst.isFreshlyInstalled)
                 put("realSourceApkPath", inst.realSourceApkPath)
                 put("realApkSizeBytes", inst.realApkSizeBytes)
                 put("realVersionName", inst.realVersionName)
@@ -126,8 +131,11 @@ class CloneStorage(private val context: Context) {
                     put("username", inst.userSession.username)
                     put("handle", inst.userSession.handle)
                     put("statusBio", inst.userSession.statusBio)
-                    put("unreadMessagesCount", inst.userSession.unreadMessagesCount)
+                    put("isAccountSetupComplete", inst.userSession.isAccountSetupComplete)
+                    put("registeredPhoneOrEmail", inst.userSession.registeredPhoneOrEmail)
+                    put("isolatedNotes", inst.userSession.isolatedNotes)
                     put("storageFilesCount", inst.userSession.storageFilesCount)
+                    put("recentActivityTimestamp", inst.userSession.recentActivityTimestamp)
                 }
                 put("userSession", sessionObj)
             }

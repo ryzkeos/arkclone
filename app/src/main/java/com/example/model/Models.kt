@@ -21,12 +21,23 @@ enum class AppCategory(val title: String) {
     GAMES("Games")
 }
 
+data class IsolatedMessageItem(
+    val id: String,
+    val sender: String,
+    val text: String,
+    val timestamp: String,
+    val isFromUser: Boolean
+)
+
 data class VirtualUserSession(
-    val username: String = "User",
-    val handle: String = "@user",
-    val statusBio: String = "Virtual Space Active",
-    val unreadMessagesCount: Int = 0,
-    val storageFilesCount: Int = 12
+    val username: String = "",
+    val handle: String = "",
+    val statusBio: String = "",
+    val isAccountSetupComplete: Boolean = false,
+    val registeredPhoneOrEmail: String = "",
+    val isolatedNotes: String = "",
+    val storageFilesCount: Int = 0,
+    val recentActivityTimestamp: Long = System.currentTimeMillis()
 )
 
 data class ClonedInstance(
@@ -38,17 +49,18 @@ data class ClonedInstance(
     val badgeTag: String, // e.g. WORK, PERSONAL, ALT, VIP, GAME
     val category: AppCategory,
     val status: InstanceStatus = InstanceStatus.IDLE,
-    val memoryUsageMb: Float = 24.0f,
-    val cacheSizeBytes: Long = 28_400_000L,
-    val dataSizeBytes: Long = 64_200_000L,
+    val memoryUsageMb: Float = 14.0f,
+    val cacheSizeBytes: Long = 0L, // Fresh install starts with 0 cache
+    val dataSizeBytes: Long = 1_200_000L, // Initial clean sandbox baseline
     val notificationsEnabled: Boolean = true,
     val pendingNotifications: Int = 0,
     val resourcePriority: ResourcePriority = ResourcePriority.BALANCED,
     val isolatedStoragePath: String,
-    val userSession: VirtualUserSession,
+    val userSession: VirtualUserSession = VirtualUserSession(),
     val createdAt: Long = System.currentTimeMillis(),
     val lastActiveAt: Long = System.currentTimeMillis(),
-    // Real installed APK metadata
+    val isFreshlyInstalled: Boolean = true,
+    // Installed APK metadata
     val realSourceApkPath: String = "",
     val realApkSizeBytes: Long = 0L,
     val realVersionName: String = "1.0",

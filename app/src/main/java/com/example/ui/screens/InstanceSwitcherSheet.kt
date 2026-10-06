@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.engine.RealAppIconView
@@ -162,14 +163,20 @@ fun InstanceSwitcherSheet(
 
                             Spacer(modifier = Modifier.width(10.dp))
 
-                            Column {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
                                     Text(
                                         text = "${inst.appName} #${inst.cloneNumber}",
                                         fontFamily = ChakraPetchFontFamily,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 13.sp,
-                                        color = PureWhite
+                                        color = PureWhite,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f, fill = false)
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Box(
@@ -184,7 +191,9 @@ fun InstanceSwitcherSheet(
                                             fontFamily = ChakraPetchFontFamily,
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 8.sp,
-                                            color = SilverAccent
+                                            color = SilverAccent,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
                                         )
                                     }
                                 }
@@ -194,7 +203,9 @@ fun InstanceSwitcherSheet(
                                     fontFamily = ChakraPetchFontFamily,
                                     fontWeight = FontWeight.Normal,
                                     fontSize = 10.sp,
-                                    color = GraySubtle
+                                    color = GraySubtle,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }

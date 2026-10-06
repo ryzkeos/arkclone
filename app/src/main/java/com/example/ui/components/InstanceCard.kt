@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.engine.RealAppIconView
@@ -103,14 +104,20 @@ fun InstanceCard(
 
                     Spacer(modifier = Modifier.width(10.dp))
 
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             Text(
                                 text = "${instance.appName} #${instance.cloneNumber}",
                                 fontFamily = ChakraPetchFontFamily,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp,
-                                color = PureWhite
+                                color = PureWhite,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false)
                             )
 
                             Spacer(modifier = Modifier.width(6.dp))
@@ -129,7 +136,9 @@ fun InstanceCard(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 9.sp,
                                     letterSpacing = 0.5.sp,
-                                    color = SilverAccent
+                                    color = SilverAccent,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
@@ -139,7 +148,9 @@ fun InstanceCard(
                             fontFamily = ChakraPetchFontFamily,
                             fontWeight = FontWeight.Normal,
                             fontSize = 11.sp,
-                            color = GraySubtle
+                            color = GraySubtle,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }

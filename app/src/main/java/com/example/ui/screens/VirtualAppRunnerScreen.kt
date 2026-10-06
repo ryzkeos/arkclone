@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -22,17 +23,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.NotificationsActive
-import androidx.compose.material.icons.filled.OpenInNew
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PowerSettingsNew
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -53,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.engine.RealAppIconView
@@ -78,32 +79,55 @@ fun VirtualAppRunnerScreen(
     onSwitchInstance: (String) -> Unit,
     onToggleSleep: (String) -> Unit,
     onClearCache: (String) -> Unit,
-    onSimulatePush: (String, String, String) -> Unit
+    onSimulatePush: (String, String, String) -> Unit,
+    onCompleteSetup: (String, String, String, String) -> Unit = { _, _, _, _ -> },
+    onResetToFreshInstall: (String) -> Unit = {},
+    onUpdateNotes: (String, String) -> Unit = { _, _ -> }
 ) {
     BackHandler { onExit() }
 
     var selectedTab by remember { mutableIntStateOf(0) }
-    var showSwitchDropdown by remember { mutableStateOf(false) }
 
-    var notificationTitleInput by remember { mutableStateOf("Alert: ${currentInstance.alias}") }
-    var notificationBodyInput by remember { mutableStateOf("Background task sync completed in isolated enclave.") }
+    // Account setup inputs
+    var setupUsername by remember(currentInstance.id) {
+        mutableStateOf(currentInstance.userSession.username.ifBlank { "${currentInstance.appName} #${currentInstance.cloneNumber}" })
+    }
+    var setupEmailOrPhone by remember(currentInstance.id) {
+        mutableStateOf(currentInstance.userSession.registeredPhoneOrEmail)
+    }
+    var setupNotes by remember(currentInstance.id) {
+        mutableStateOf(currentInstance.userSession.isolatedNotes)
+    }
+    var notesSaveFeedback by remember { mutableStateOf<String?>(null) }
+
+    // Push inputs
+    var notificationTitleInput by remember(currentInstance.id) {
+        mutableStateOf("Alert: ${currentInstance.alias}")
+    }
+    var notificationBodyInput by remember(currentInstance.id) {
+        mutableStateOf("Background task sync completed in isolated enclave.")
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(PureBlack)
     ) {
-        // Top Container Header: Ark Clone Virtual Space Bar
+        // Top Container Header: Ark Clone Virtual Space Bar with statusBarsPadding to avoid notification area overlap
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(DarkSurface)
+                .statusBarsPadding()
                 .border(1.dp, DarkCardBorder)
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
                 IconButton(
                     onClick = onExit,
                     modifier = Modifier
@@ -129,14 +153,20 @@ fun VirtualAppRunnerScreen(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Text(
                             text = "${currentInstance.appName} #${currentInstance.cloneNumber}",
                             fontFamily = ChakraPetchFontFamily,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
-                            color = PureWhite
+                            color = PureWhite,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
                         )
 
                         Spacer(modifier = Modifier.width(6.dp))
@@ -153,12 +183,17 @@ fun VirtualAppRunnerScreen(
                                 fontFamily = ChakraPetchFontFamily,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 8.sp,
-                                color = PureWhite
+                                color = PureWhite,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Security,
                             contentDescription = "Isolated",
@@ -172,106 +207,24 @@ fun VirtualAppRunnerScreen(
                             fontWeight = FontWeight.Medium,
                             fontSize = 9.sp,
                             letterSpacing = 0.5.sp,
-                            color = GraySubtle
+                            color = GraySubtle,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
             }
 
-            // Quick Instance Switcher
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(DarkSurfaceVariant)
-                            .border(1.dp, PureWhite, RoundedCornerShape(8.dp))
-                            .clickable { showSwitchDropdown = true }
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
-                            .testTag("quick_switch_dropdown_button")
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.SwapHoriz,
-                                contentDescription = "Switch Instance",
-                                tint = PureWhite,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "SWITCH",
-                                fontFamily = ChakraPetchFontFamily,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 10.sp,
-                                color = PureWhite
-                            )
-                            Icon(
-                                imageVector = Icons.Default.KeyboardArrowDown,
-                                contentDescription = null,
-                                tint = PureWhite,
-                                modifier = Modifier.size(14.dp)
-                            )
-                        }
-                    }
-
-                    DropdownMenu(
-                        expanded = showSwitchDropdown,
-                        onDismissRequest = { showSwitchDropdown = false },
-                        modifier = Modifier
-                            .background(DarkSurface)
-                            .border(1.dp, DarkCardBorder)
-                    ) {
-                        Text(
-                            text = "SMOOTH SWITCH INSTANCE",
-                            fontFamily = ChakraPetchFontFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 10.sp,
-                            color = GrayMedium,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                        )
-
-                        allInstances.forEach { other ->
-                            DropdownMenuItem(
-                                text = {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Text(
-                                            text = "${other.appName} #${other.cloneNumber} [${other.badgeTag}]",
-                                            fontFamily = ChakraPetchFontFamily,
-                                            fontWeight = if (other.id == currentInstance.id) FontWeight.Bold else FontWeight.Normal,
-                                            color = if (other.id == currentInstance.id) PureWhite else GraySubtle,
-                                            fontSize = 12.sp
-                                        )
-                                        if (other.id == currentInstance.id) {
-                                            Text(
-                                                text = "CURRENT",
-                                                fontFamily = ChakraPetchFontFamily,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 9.sp,
-                                                color = PureWhite
-                                            )
-                                        }
-                                    }
-                                },
-                                onClick = {
-                                    showSwitchDropdown = false
-                                    if (other.id != currentInstance.id) {
-                                        onSwitchInstance(other.id)
-                                    }
-                                }
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(6.dp))
-
+            // Header Right Side: Switch button removed per user request; icon only actions
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(start = 8.dp)
+            ) {
                 IconButton(
                     onClick = { onToggleSleep(currentInstance.id) },
-                    modifier = Modifier.size(34.dp)
+                    modifier = Modifier
+                        .size(34.dp)
+                        .testTag("header_toggle_sleep_button")
                 ) {
                     Icon(
                         imageVector = Icons.Default.PowerSettingsNew,
@@ -283,7 +236,7 @@ fun VirtualAppRunnerScreen(
             }
         }
 
-        // Sub Tabs
+        // Sub Navigation Tabs
         TabRow(
             selectedTabIndex = selectedTab,
             containerColor = DarkSurface,
@@ -337,14 +290,406 @@ fun VirtualAppRunnerScreen(
         // Tab Content
         when (selectedTab) {
             0 -> {
-                // Real APK Runtime Console & Launch Enclave
+                // Tab 0: Separated Clean App Instance (Freshly installed & zero host overlap)
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(14.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Big Action: Launch Real APK
+                    // Separation & Zero Overlap Guarantee Banner
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(DarkSurfaceVariant)
+                                .border(1.dp, DarkCardBorder, RoundedCornerShape(10.dp))
+                                .padding(14.dp)
+                        ) {
+                            Column {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = Icons.Default.Security,
+                                            contentDescription = null,
+                                            tint = PureWhite,
+                                            modifier = Modifier.size(15.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            text = "SEPARATED APP INSTANCE",
+                                            fontFamily = ChakraPetchFontFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 11.sp,
+                                            letterSpacing = 1.sp,
+                                            color = PureWhite
+                                        )
+                                    }
+
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(if (currentInstance.userSession.isAccountSetupComplete) PureWhite else SilverAccent)
+                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            text = if (currentInstance.userSession.isAccountSetupComplete) "SEPARATED PROFILE" else "FRESH INSTALL",
+                                            fontFamily = ChakraPetchFontFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 9.sp,
+                                            letterSpacing = 0.5.sp,
+                                            color = PureBlack
+                                        )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(6.dp))
+
+                                Text(
+                                    text = "Each clone operates as a completely separated, freshly installed application. Host device app data remains 100% untouched and inaccessible. Clones are never connected to each other.",
+                                    fontFamily = ChakraPetchFontFamily,
+                                    fontWeight = FontWeight.Normal,
+                                    fontSize = 10.sp,
+                                    color = GraySubtle
+                                )
+                            }
+                        }
+                    }
+
+                    // Fresh Setup Wizard or Active Separated Profile
+                    if (!currentInstance.userSession.isAccountSetupComplete) {
+                        // Fresh App Onboarding Wizard
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(DarkSurface)
+                                    .border(1.dp, PureWhite, RoundedCornerShape(12.dp))
+                                    .padding(16.dp)
+                            ) {
+                                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = Icons.Default.Person,
+                                            contentDescription = null,
+                                            tint = PureWhite,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Column {
+                                            Text(
+                                                text = "INITIAL SETUP FOR CLONE #${currentInstance.cloneNumber}",
+                                                fontFamily = ChakraPetchFontFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 13.sp,
+                                                letterSpacing = 0.5.sp,
+                                                color = PureWhite
+                                            )
+                                            Text(
+                                                text = "Configure this fresh instance without touching real device accounts:",
+                                                fontFamily = ChakraPetchFontFamily,
+                                                fontSize = 10.sp,
+                                                color = GraySubtle
+                                            )
+                                        }
+                                    }
+
+                                    OutlinedTextField(
+                                        value = setupUsername,
+                                        onValueChange = { setupUsername = it },
+                                        label = {
+                                            Text(
+                                                "Clone Account Name / Label",
+                                                fontFamily = ChakraPetchFontFamily,
+                                                fontSize = 11.sp
+                                            )
+                                        },
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = PureWhite,
+                                            unfocusedBorderColor = DarkCardBorder,
+                                            focusedTextColor = PureWhite,
+                                            unfocusedTextColor = PureWhite,
+                                            focusedContainerColor = DarkSurfaceVariant,
+                                            unfocusedContainerColor = DarkSurfaceVariant
+                                        ),
+                                        shape = RoundedCornerShape(8.dp),
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+
+                                    OutlinedTextField(
+                                        value = setupEmailOrPhone,
+                                        onValueChange = { setupEmailOrPhone = it },
+                                        label = {
+                                            Text(
+                                                "Separate Login Phone or Email (Optional)",
+                                                fontFamily = ChakraPetchFontFamily,
+                                                fontSize = 11.sp
+                                            )
+                                        },
+                                        placeholder = {
+                                            Text(
+                                                "e.g. clone${currentInstance.cloneNumber}@example.com",
+                                                fontFamily = ChakraPetchFontFamily,
+                                                fontSize = 11.sp,
+                                                color = GrayMedium
+                                            )
+                                        },
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = PureWhite,
+                                            unfocusedBorderColor = DarkCardBorder,
+                                            focusedTextColor = PureWhite,
+                                            unfocusedTextColor = PureWhite,
+                                            focusedContainerColor = DarkSurfaceVariant,
+                                            unfocusedContainerColor = DarkSurfaceVariant
+                                        ),
+                                        shape = RoundedCornerShape(8.dp),
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+
+                                    OutlinedTextField(
+                                        value = setupNotes,
+                                        onValueChange = { setupNotes = it },
+                                        label = {
+                                            Text(
+                                                "Isolated Notes / Credentials Vault",
+                                                fontFamily = ChakraPetchFontFamily,
+                                                fontSize = 11.sp
+                                            )
+                                        },
+                                        placeholder = {
+                                            Text(
+                                                "Add private notes stored only in this clone...",
+                                                fontFamily = ChakraPetchFontFamily,
+                                                fontSize = 11.sp,
+                                                color = GrayMedium
+                                            )
+                                        },
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = PureWhite,
+                                            unfocusedBorderColor = DarkCardBorder,
+                                            focusedTextColor = PureWhite,
+                                            unfocusedTextColor = PureWhite,
+                                            focusedContainerColor = DarkSurfaceVariant,
+                                            unfocusedContainerColor = DarkSurfaceVariant
+                                        ),
+                                        shape = RoundedCornerShape(8.dp),
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(PureWhite)
+                                            .clickable {
+                                                onCompleteSetup(
+                                                    currentInstance.id,
+                                                    setupUsername,
+                                                    setupEmailOrPhone,
+                                                    setupNotes
+                                                )
+                                            }
+                                            .padding(vertical = 12.dp)
+                                            .testTag("initialize_clone_account_button"),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "INITIALIZE FRESH CLONE WORKSPACE",
+                                            fontFamily = ChakraPetchFontFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 12.sp,
+                                            letterSpacing = 0.5.sp,
+                                            color = PureBlack
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        // Active Separated Workspace Profile & Private Vault
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(DarkSurfaceVariant)
+                                    .border(1.dp, PureWhite, RoundedCornerShape(12.dp))
+                                    .padding(16.dp)
+                            ) {
+                                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(36.dp)
+                                                    .clip(CircleShape)
+                                                    .background(DarkSurface)
+                                                    .border(1.dp, DarkCardBorder, CircleShape),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Person,
+                                                    contentDescription = null,
+                                                    tint = PureWhite,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+
+                                            Spacer(modifier = Modifier.width(10.dp))
+
+                                            Column(modifier = Modifier.weight(1f)) {
+                                                Text(
+                                                    text = currentInstance.userSession.username,
+                                                    fontFamily = ChakraPetchFontFamily,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 14.sp,
+                                                    color = PureWhite,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                                Text(
+                                                    text = "${currentInstance.userSession.handle} • UID_${currentInstance.virtualUid}",
+                                                    fontFamily = ChakraPetchFontFamily,
+                                                    fontSize = 10.sp,
+                                                    color = SilverAccent,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                            }
+                                        }
+
+                                        // Factory Reset Clone button
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(6.dp))
+                                                .background(DarkSurface)
+                                                .border(1.dp, DarkCardBorder, RoundedCornerShape(6.dp))
+                                                .clickable { onResetToFreshInstall(currentInstance.id) }
+                                                .padding(horizontal = 8.dp, vertical = 6.dp)
+                                                .testTag("factory_reset_clone_button")
+                                        ) {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Refresh,
+                                                    contentDescription = "Reset",
+                                                    tint = PureWhite,
+                                                    modifier = Modifier.size(13.dp)
+                                                )
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                                Text(
+                                                    text = "RESET TO CLEAN",
+                                                    fontFamily = ChakraPetchFontFamily,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 9.sp,
+                                                    color = PureWhite
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    if (currentInstance.userSession.registeredPhoneOrEmail.isNotBlank()) {
+                                        Text(
+                                            text = "Linked ID: ${currentInstance.userSession.registeredPhoneOrEmail}",
+                                            fontFamily = ChakraPetchFontFamily,
+                                            fontSize = 10.sp,
+                                            color = GraySubtle,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+
+                                    // Isolated Notes Vault Editor
+                                    Column {
+                                        Text(
+                                            text = "ISOLATED INSTANCE VAULT NOTES:",
+                                            fontFamily = ChakraPetchFontFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 10.sp,
+                                            letterSpacing = 0.5.sp,
+                                            color = GrayMedium
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        OutlinedTextField(
+                                            value = setupNotes,
+                                            onValueChange = {
+                                                setupNotes = it
+                                                notesSaveFeedback = null
+                                            },
+                                            colors = OutlinedTextFieldDefaults.colors(
+                                                focusedBorderColor = PureWhite,
+                                                unfocusedBorderColor = DarkCardBorder,
+                                                focusedTextColor = PureWhite,
+                                                unfocusedTextColor = PureWhite,
+                                                focusedContainerColor = DarkSurface,
+                                                unfocusedContainerColor = DarkSurface
+                                            ),
+                                            shape = RoundedCornerShape(8.dp),
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+
+                                        Spacer(modifier = Modifier.height(6.dp))
+
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = notesSaveFeedback ?: "Private to this clone directory",
+                                                fontFamily = ChakraPetchFontFamily,
+                                                fontSize = 9.sp,
+                                                color = if (notesSaveFeedback != null) PureWhite else GraySubtle
+                                            )
+
+                                            Box(
+                                                modifier = Modifier
+                                                    .clip(RoundedCornerShape(6.dp))
+                                                    .background(PureWhite)
+                                                    .clickable {
+                                                        onUpdateNotes(currentInstance.id, setupNotes)
+                                                        notesSaveFeedback = "Saved to clone vault"
+                                                    }
+                                                    .padding(horizontal = 10.dp, vertical = 6.dp)
+                                                    .testTag("save_clone_notes_button")
+                                            ) {
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Save,
+                                                        contentDescription = null,
+                                                        tint = PureBlack,
+                                                        modifier = Modifier.size(12.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(4.dp))
+                                                    Text(
+                                                        text = "SAVE NOTES",
+                                                        fontFamily = ChakraPetchFontFamily,
+                                                        fontWeight = FontWeight.Bold,
+                                                        fontSize = 10.sp,
+                                                        color = PureBlack
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Primary Launch Button
                     item {
                         Box(
                             modifier = Modifier
@@ -352,7 +697,7 @@ fun VirtualAppRunnerScreen(
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(PureWhite)
                                 .clickable { onLaunchRealAppDirectly() }
-                                .padding(18.dp)
+                                .padding(16.dp)
                                 .testTag("primary_launch_real_apk_button"),
                             contentAlignment = Alignment.Center
                         ) {
@@ -366,26 +711,30 @@ fun VirtualAppRunnerScreen(
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Column {
                                     Text(
-                                        text = "LAUNCH APPLICATION",
+                                        text = "LAUNCH ISOLATED TASK",
                                         fontFamily = ChakraPetchFontFamily,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 14.sp,
                                         letterSpacing = 1.sp,
-                                        color = PureBlack
+                                        color = PureBlack,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                     Text(
-                                        text = "Executes ${currentInstance.appName} in this isolated virtual space",
+                                        text = "Spawns an independent multi-task instance for ${currentInstance.appName}",
                                         fontFamily = ChakraPetchFontFamily,
                                         fontWeight = FontWeight.Normal,
                                         fontSize = 10.sp,
-                                        color = PureBlack.copy(alpha = 0.7f)
+                                        color = PureBlack.copy(alpha = 0.7f),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }
                         }
                     }
 
-                    // Secondary App Actions
+                    // Secondary App Actions: App Settings & Flush Cache
                     item {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -415,7 +764,9 @@ fun VirtualAppRunnerScreen(
                                         fontFamily = ChakraPetchFontFamily,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 11.sp,
-                                        color = PureWhite
+                                        color = PureWhite,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }
@@ -444,14 +795,16 @@ fun VirtualAppRunnerScreen(
                                         fontFamily = ChakraPetchFontFamily,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 11.sp,
-                                        color = PureWhite
+                                        color = PureWhite,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }
                         }
                     }
 
-                    // Real APK Metadata Enclave Box
+                    // Specifications Card with Safe Ellipsis Truncation
                     item {
                         Box(
                             modifier = Modifier
@@ -473,7 +826,8 @@ fun VirtualAppRunnerScreen(
 
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
                                         text = "Package Name:",
@@ -486,13 +840,17 @@ fun VirtualAppRunnerScreen(
                                         fontFamily = ChakraPetchFontFamily,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 10.sp,
-                                        color = PureWhite
+                                        color = PureWhite,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f, fill = false)
                                     )
                                 }
 
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
                                         text = "APK Version:",
@@ -505,32 +863,16 @@ fun VirtualAppRunnerScreen(
                                         fontFamily = ChakraPetchFontFamily,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 10.sp,
-                                        color = SilverAccent
+                                        color = SilverAccent,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
 
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        text = "Base APK Size:",
-                                        fontFamily = ChakraPetchFontFamily,
-                                        fontSize = 10.sp,
-                                        color = GrayMedium
-                                    )
-                                    Text(
-                                        text = "${currentInstance.realApkSizeBytes / (1024 * 1024)} MB",
-                                        fontFamily = ChakraPetchFontFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 10.sp,
-                                        color = PureWhite
-                                    )
-                                }
-
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
                                         text = "Virtual UID Assigned:",
@@ -549,7 +891,8 @@ fun VirtualAppRunnerScreen(
 
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
                                         text = "Target SDK Platform:",
@@ -578,49 +921,12 @@ fun VirtualAppRunnerScreen(
                                             text = currentInstance.realSourceApkPath,
                                             fontFamily = ChakraPetchFontFamily,
                                             fontSize = 9.sp,
-                                            color = GraySubtle
+                                            color = GraySubtle,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
                                         )
                                     }
                                 }
-                            }
-                        }
-                    }
-
-                    // Enclave isolation status
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(DarkSurfaceVariant)
-                                .border(1.dp, DarkCardBorder, RoundedCornerShape(8.dp))
-                                .padding(12.dp)
-                        ) {
-                            Column {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = Icons.Default.Security,
-                                        contentDescription = null,
-                                        tint = PureWhite,
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text(
-                                        text = "MULTI-TASK RUNTIME ISOLATION ACTIVE",
-                                        fontFamily = ChakraPetchFontFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 11.sp,
-                                        color = PureWhite
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Each cloned instance executes with FLAG_ACTIVITY_MULTIPLE_TASK and independent TaskAffinity, preventing cross-account state collision on device.",
-                                    fontFamily = ChakraPetchFontFamily,
-                                    fontWeight = FontWeight.Normal,
-                                    fontSize = 10.sp,
-                                    color = GraySubtle
-                                )
                             }
                         }
                     }
@@ -628,7 +934,7 @@ fun VirtualAppRunnerScreen(
             }
 
             1 -> {
-                // Account Push Notification Routing
+                // Tab 1: Account Push Notification Routing
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -773,7 +1079,9 @@ fun VirtualAppRunnerScreen(
                                 fontFamily = ChakraPetchFontFamily,
                                 fontWeight = FontWeight.Normal,
                                 fontSize = 10.sp,
-                                color = GraySubtle
+                                color = GraySubtle,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -781,7 +1089,7 @@ fun VirtualAppRunnerScreen(
             }
 
             2 -> {
-                // Storage, Virtual Filesystem & Cache Inspector
+                // Tab 2: Storage & Cache Inspector
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -906,7 +1214,9 @@ fun VirtualAppRunnerScreen(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 11.sp,
                                 letterSpacing = 1.sp,
-                                color = PureWhite
+                                color = PureWhite,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -944,7 +1254,9 @@ fun VirtualAppRunnerScreen(
                                 fontFamily = ChakraPetchFontFamily,
                                 fontWeight = FontWeight.Normal,
                                 fontSize = 11.sp,
-                                color = SilverAccent
+                                color = SilverAccent,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }

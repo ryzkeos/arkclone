@@ -384,11 +384,14 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
                 File(spaceDir, "notifs").mkdirs()
 
                 val userSession = VirtualUserSession(
-                    username = "${targetApk.appName} #$nextCloneNum",
-                    handle = "@${targetApk.packageName.substringAfterLast(".")}_$nextCloneNum",
-                    statusBio = "Virtual Enclave #$nextCloneNum for installed app",
-                    unreadMessagesCount = 0,
-                    storageFilesCount = 14
+                    username = "",
+                    handle = "",
+                    statusBio = "Freshly installed isolated container",
+                    isAccountSetupComplete = false,
+                    registeredPhoneOrEmail = "",
+                    isolatedNotes = "",
+                    storageFilesCount = 0,
+                    recentActivityTimestamp = System.currentTimeMillis()
                 )
 
                 val newInst = ClonedInstance(
@@ -401,13 +404,14 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
                     category = customCategory,
                     status = InstanceStatus.IDLE,
                     memoryUsageMb = priority.baseMemoryMb,
-                    cacheSizeBytes = (targetApk.apkSizeBytes / 5).coerceAtLeast(12_000_000L),
-                    dataSizeBytes = (targetApk.apkSizeBytes / 2).coerceAtLeast(30_000_000L),
+                    cacheSizeBytes = 0L, // Fresh install starts with 0 cache
+                    dataSizeBytes = 1_200_000L, // Baseline isolated clean sandbox structure
                     notificationsEnabled = true,
                     pendingNotifications = 0,
                     resourcePriority = priority,
                     isolatedStoragePath = spaceDir.absolutePath,
                     userSession = userSession,
+                    isFreshlyInstalled = true,
                     realSourceApkPath = targetApk.sourceApkPath,
                     realApkSizeBytes = targetApk.apkSizeBytes,
                     realVersionName = targetApk.versionName,
@@ -427,6 +431,118 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
             storage.saveInstances(updated)
             _showCloneDialog.value = false
         }
+    }
+
+    fun completeInstanceSetup(instanceId: String, username: String, emailOrPhone: String, notes: String) {
+        val target = _instances.value.find { it.id == instanceId } ?: return
+        val cleanUsername = if (username.isBlank()) "${target.appName} #${target.cloneNumber}" else username
+        val cleanHandle = "@" + cleanUsername.lowercase().replace(" ", "_")
+
+        val updatedSession = VirtualUserSession(
+            username = cleanUsername,
+            handle = cleanHandle,
+            statusBio = "Active Isolated Instance #${target.cloneNumber}",
+            isAccountSetupComplete = true,
+            registeredPhoneOrEmail = emailOrPhone,
+            isolatedNotes = notes,
+            storageFilesCount = 4,
+            recentActivityTimestamp = System.currentTimeMillis()
+        )
+
+        try {
+            val userFile = File(target.isolatedStoragePath, "files/user_profile.json")
+            userFile.writeText("{\"username\":\"$cleanUsername\",\"email\":\"$emailOrPhone\",\"clone\":${target.cloneNumber}}")
+            if (notes.isNotBlank()) {
+                File(target.isolatedStoragePath, "files/isolated_notes.txt").writeText(notes)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        _instances.update { list ->
+            list.map { inst ->
+                if (inst.id == instanceId) {
+                    inst.copy(
+                        userSession = updatedSession,
+                        isFreshlyInstalled = false,
+                        dataSizeBytes = 3_400_000L,
+                        lastActiveAt = System.currentTimeMillis()
+                    )
+                } else inst
+            }
+        }
+        storage.saveInstances(_instances.value)
+    }
+
+    fun resetInstanceToFreshInstall(instanceId: String) {
+        val target = _instances.value.find { it.id == instanceId } ?: return
+
+        try {
+            val dir = File(target.isolatedStoragePath)
+            if (dir.exists()) {
+                dir.deleteRecursively()
+            }
+            dir.mkdirs()
+            File(dir, "files").mkdirs()
+            File(dir, "cache").mkdirs()
+            File(dir, "databases").mkdirs()
+            File(dir, "shared_prefs").mkdirs()
+            File(dir, "notifs").mkdirs()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        val freshSession = VirtualUserSession(
+            username = "",
+            handle = "",
+            statusBio = "Freshly installed isolated container",
+            isAccountSetupComplete = false,
+            registeredPhoneOrEmail = "",
+            isolatedNotes = "",
+            storageFilesCount = 0,
+            recentActivityTimestamp = System.currentTimeMillis()
+        )
+
+        _instances.update { list ->
+            list.map { inst ->
+                if (inst.id == instanceId) {
+                    inst.copy(
+                        userSession = freshSession,
+                        isFreshlyInstalled = true,
+                        cacheSizeBytes = 0L,
+                        dataSizeBytes = 1_200_000L,
+                        pendingNotifications = 0,
+                        lastActiveAt = System.currentTimeMillis()
+                    )
+                } else inst
+            }
+        }
+        storage.saveInstances(_instances.value)
+    }
+
+    fun updateInstanceNotes(instanceId: String, notes: String) {
+        val target = _instances.value.find { it.id == instanceId } ?: return
+
+        try {
+            File(target.isolatedStoragePath, "files/isolated_notes.txt").writeText(notes)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        _instances.update { list ->
+            list.map { inst ->
+                if (inst.id == instanceId) {
+                    inst.copy(
+                        userSession = inst.userSession.copy(
+                            isolatedNotes = notes,
+                            recentActivityTimestamp = System.currentTimeMillis()
+                        ),
+                        dataSizeBytes = inst.dataSizeBytes + (notes.length * 2)
+                    )
+                } else inst
+            }
+        }
+        storage.saveInstances(_instances.value)
     }
 
     fun simulateNotificationForInstance(instanceId: String, title: String, message: String) {
