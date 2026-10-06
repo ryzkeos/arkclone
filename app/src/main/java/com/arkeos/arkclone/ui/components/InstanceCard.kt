@@ -209,7 +209,7 @@ fun InstanceCard(
                             DropdownMenuItem(
                                 text = {
                                     Text(
-                                        "Delete Virtual Enclave",
+                                        "Delete Clone",
                                         fontFamily = ChakraPetchFontFamily,
                                         color = ArkInk,
                                         fontSize = 12.sp
@@ -266,12 +266,10 @@ fun InstanceCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Action Row: Launch Cloned App, Enclave Console
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Primary: Launch App in Virtual Space
                 Box(
                     modifier = Modifier
                         .weight(1.3f)
@@ -301,7 +299,6 @@ fun InstanceCard(
                     }
                 }
 
-                // Enclave Console Button
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
@@ -309,7 +306,7 @@ fun InstanceCard(
                         .border(1.dp, ArkBorder, RoundedCornerShape(8.dp))
                         .clickable { onLaunch() }
                         .padding(horizontal = 12.dp, vertical = 10.dp)
-                        .testTag("enclave_console_button_${instance.id}"),
+                        .testTag("details_button_${instance.id}"),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(

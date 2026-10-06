@@ -125,7 +125,7 @@ fun CloneAppDialog(
                             color = ArkInk
                         )
                         Text(
-                            text = "Select an app to clone",
+                            text = "Select An App To Clone",
                             fontFamily = ChakraPetchFontFamily,
                             fontWeight = FontWeight.Normal,
                             fontSize = 10.sp,
@@ -154,7 +154,7 @@ fun CloneAppDialog(
                     onValueChange = { searchQuery = it },
                     placeholder = {
                         Text(
-                            "Search installed apps...",
+                            "Search Installed Apps...",
                             fontFamily = ChakraPetchFontFamily,
                             fontSize = 11.sp,
                             color = ArkMuted
@@ -274,20 +274,22 @@ fun CloneAppDialog(
                             }
 
                             Column(horizontalAlignment = Alignment.End) {
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .background(if (isSelected) ArkInk else ArkSurface)
-                                        .border(1.dp, ArkBorder, RoundedCornerShape(4.dp))
-                                        .padding(horizontal = 5.dp, vertical = 2.dp)
-                                ) {
-                                    Text(
-                                        text = if (app.isSystemApp) "SYSTEM" else "INSTALLED",
-                                        fontFamily = ChakraPetchFontFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 8.sp,
-                                        color = if (isSelected) ArkPaper else ArkSoft
-                                    )
+                                if (app.isSystemApp) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(if (isSelected) ArkInk else ArkSurface)
+                                            .border(1.dp, ArkBorder, RoundedCornerShape(4.dp))
+                                            .padding(horizontal = 5.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            text = "SYSTEM",
+                                            fontFamily = ChakraPetchFontFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 8.sp,
+                                            color = if (isSelected) ArkPaper else ArkSoft
+                                        )
+                                    }
                                 }
                                 Text(
                                     text = "${app.apkSizeBytes / (1024 * 1024)} MB",
@@ -308,7 +310,7 @@ fun CloneAppDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (cloneCount > 1) "CLONE NICKNAMES" else "CLONE NICKNAME",
+                        text = if (cloneCount > 1) "Clone Nicknames" else "Clone Nickname",
                         fontFamily = ChakraPetchFontFamily,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 10.sp,
@@ -382,7 +384,7 @@ fun CloneAppDialog(
                             singleLine = true,
                             placeholder = {
                                 Text(
-                                    if (cloneCount > 1) "Clone ${index + 1} nickname" else "Clone nickname",
+                                    if (cloneCount > 1) "Clone ${index + 1} Nickname" else "Clone Nickname",
                                     fontFamily = ChakraPetchFontFamily,
                                     fontSize = 11.sp,
                                     color = ArkMuted
