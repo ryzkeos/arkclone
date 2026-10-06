@@ -319,14 +319,6 @@ fun DashboardScreen(
                             letterSpacing = 1.sp,
                             color = ArkSubtle
                         )
-
-                        Text(
-                            text = "ISOLATED DATA",
-                            fontFamily = ChakraPetchFontFamily,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 10.sp,
-                            color = ArkMuted
-                        )
                     }
                 }
 

@@ -109,7 +109,7 @@ fun StartupSplash(
                 Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
-                    text = "VIRTUAL SPACES ENGINE",
+                    text = "CLONE APP SPACE",
                     fontFamily = ChakraPetchFontFamily,
                     fontWeight = FontWeight.Medium,
                     fontSize = 11.sp,
