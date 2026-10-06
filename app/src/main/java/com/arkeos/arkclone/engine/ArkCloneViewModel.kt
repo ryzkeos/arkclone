@@ -5,14 +5,15 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.arkeos.arkclone.data.CloneStorage
 import com.arkeos.arkclone.model.AppCategory
+import com.arkeos.arkclone.model.ArkToast
 import com.arkeos.arkclone.model.CloneInstallState
 import com.arkeos.arkclone.model.ClonedInstance
 import com.arkeos.arkclone.model.RealInstalledApk
+import com.arkeos.arkclone.model.ToastType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.first
@@ -53,6 +54,9 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
     private val _showCloneDialog = MutableStateFlow(false)
     val showCloneDialog: StateFlow<Boolean> = _showCloneDialog.asStateFlow()
 
+    private val _toast = MutableStateFlow<ArkToast?>(null)
+    val toast: StateFlow<ArkToast?> = _toast.asStateFlow()
+
 
     init {
         loadData()
@@ -64,6 +68,8 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
     }
 
     private fun applyInstallEvent(event: CloneInstallEvent) {
+        val target = _instances.value.find { it.clonePackageName == event.packageName }
+        val name = target?.alias ?: event.packageName
         _instances.update { list ->
             if (event.state == CloneInstallState.FAILED) {
                 list.filterNot { it.clonePackageName == event.packageName }
@@ -76,8 +82,19 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
             }
         }
         storage.saveInstances(_instances.value)
-        if (event.state == CloneInstallState.FAILED) {
-            toast("Clone install failed: ${event.message.ifBlank { "cancelled or rejected" }}")
+        if (target == null) return
+        when (event.state) {
+            CloneInstallState.INSTALLED -> showToast("$name installed", ToastType.SUCCESS)
+            CloneInstallState.AWAITING_USER -> showToast("Confirm the install to finish $name", ToastType.INFO)
+            CloneInstallState.FAILED -> {
+                val cancelled = event.message.isBlank() || event.message.contains("ABORTED", ignoreCase = true)
+                if (cancelled) {
+                    showToast("$name install cancelled", ToastType.ERROR)
+                } else {
+                    showToast("$name install failed: ${event.message}", ToastType.ERROR)
+                }
+            }
+            else -> Unit
         }
     }
 
@@ -98,8 +115,12 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
         storage.saveInstances(_instances.value)
     }
 
-    private fun toast(message: String) {
-        Toast.makeText(getApplication<Application>(), message, Toast.LENGTH_LONG).show()
+    private fun showToast(message: String, type: ToastType = ToastType.INFO) {
+        _toast.value = ArkToast(id = System.nanoTime(), message = message, type = type)
+    }
+
+    fun dismissToast(id: Long) {
+        _toast.update { current -> if (current?.id == id) null else current }
     }
 
     private fun loadData() {
@@ -159,7 +180,7 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
 
         return try {
             if (instance.clonePackageName.isBlank() || instance.installState != CloneInstallState.INSTALLED) {
-                toast("This clone is not installed yet")
+                showToast("This clone is not installed yet", ToastType.ERROR)
                 return false
             }
             val intent = pm.getLaunchIntentForPackage(instance.clonePackageName)
@@ -168,10 +189,12 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
                 context.startActivity(intent)
                 true
             } else {
+                showToast("${instance.alias} can't be launched", ToastType.ERROR)
                 false
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            showToast("${instance.alias} can't be launched", ToastType.ERROR)
             false
         }
     }
@@ -224,7 +247,7 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
         customCategory: AppCategory = targetApk.category
     ) {
         if (!cloneInstaller.canInstall()) {
-            toast("Allow Ark Clone to install apps, then try again")
+            showToast("Allow Ark Clone to install apps, then try again", ToastType.INFO)
             cloneInstaller.openInstallPermissionSettings()
             return
         }
@@ -264,6 +287,7 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
                     installState = CloneInstallState.PREPARING
                 )
                 _instances.update { it + instance }
+                showToast("Preparing $alias", ToastType.INFO)
                 storage.saveInstances(_instances.value)
 
                 val committed = withContext(Dispatchers.IO) {

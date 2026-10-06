@@ -30,10 +30,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkeos.arkclone.R
+import com.arkeos.arkclone.ui.theme.ArkLogoFilter
 import com.arkeos.arkclone.ui.theme.ChakraPetchFontFamily
-import com.arkeos.arkclone.ui.theme.DarkCardBorder
-import com.arkeos.arkclone.ui.theme.PureBlack
-import com.arkeos.arkclone.ui.theme.PureWhite
+import com.arkeos.arkclone.ui.theme.ArkBorder
+import com.arkeos.arkclone.ui.theme.ArkPaper
+import com.arkeos.arkclone.ui.theme.ArkInk
 
 @Composable
 fun DashboardTopBar(
@@ -43,7 +44,7 @@ fun DashboardTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(PureBlack)
+            .background(ArkPaper)
             .statusBarsPadding()
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -55,6 +56,7 @@ fun DashboardTopBar(
             Image(
                 painter = painterResource(id = R.drawable.ic_ark_clone_logo),
                 contentDescription = "Ark Clone Logo",
+                colorFilter = ArkLogoFilter,
                 modifier = Modifier.size(40.dp)
             )
 
@@ -67,7 +69,7 @@ fun DashboardTopBar(
                     fontWeight = FontWeight.Bold,
                     fontSize = 17.sp,
                     letterSpacing = 1.sp,
-                    color = PureWhite,
+                    color = ArkInk,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -87,7 +89,7 @@ fun DashboardTopBar(
                 Icon(
                     imageVector = if (isDarkMode) Icons.Default.DarkMode else Icons.Default.LightMode,
                     contentDescription = if (isDarkMode) "Switch to Light Mode" else "Switch to Dark Mode",
-                    tint = PureWhite,
+                    tint = ArkInk,
                     modifier = Modifier.size(20.dp)
                 )
             }

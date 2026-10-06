@@ -53,14 +53,14 @@ import com.arkeos.arkclone.engine.RealAppIconView
 import com.arkeos.arkclone.model.AppCategory
 import com.arkeos.arkclone.model.RealInstalledApk
 import com.arkeos.arkclone.ui.theme.ChakraPetchFontFamily
-import com.arkeos.arkclone.ui.theme.DarkCardBorder
-import com.arkeos.arkclone.ui.theme.DarkSurface
-import com.arkeos.arkclone.ui.theme.DarkSurfaceVariant
-import com.arkeos.arkclone.ui.theme.GrayMedium
-import com.arkeos.arkclone.ui.theme.GraySubtle
-import com.arkeos.arkclone.ui.theme.PureBlack
-import com.arkeos.arkclone.ui.theme.PureWhite
-import com.arkeos.arkclone.ui.theme.SilverAccent
+import com.arkeos.arkclone.ui.theme.ArkBorder
+import com.arkeos.arkclone.ui.theme.ArkSurface
+import com.arkeos.arkclone.ui.theme.ArkSurfaceVariant
+import com.arkeos.arkclone.ui.theme.ArkMuted
+import com.arkeos.arkclone.ui.theme.ArkSubtle
+import com.arkeos.arkclone.ui.theme.ArkPaper
+import com.arkeos.arkclone.ui.theme.ArkInk
+import com.arkeos.arkclone.ui.theme.ArkSoft
 
 private const val MAX_CLONES = 5
 
@@ -100,11 +100,11 @@ fun CloneAppDialog(
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(14.dp),
-            color = DarkSurface,
+            color = ArkSurface,
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.88f)
-                .border(1.dp, PureWhite, RoundedCornerShape(14.dp))
+                .border(1.dp, ArkInk, RoundedCornerShape(14.dp))
         ) {
             Column(
                 modifier = Modifier
@@ -122,14 +122,14 @@ fun CloneAppDialog(
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp,
                             letterSpacing = 1.sp,
-                            color = PureWhite
+                            color = ArkInk
                         )
                         Text(
                             text = "Select an app to clone",
                             fontFamily = ChakraPetchFontFamily,
                             fontWeight = FontWeight.Normal,
                             fontSize = 10.sp,
-                            color = GraySubtle
+                            color = ArkSubtle
                         )
                     }
 
@@ -140,7 +140,7 @@ fun CloneAppDialog(
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Close",
-                            tint = PureWhite,
+                            tint = ArkInk,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -157,24 +157,24 @@ fun CloneAppDialog(
                             "Search installed apps...",
                             fontFamily = ChakraPetchFontFamily,
                             fontSize = 11.sp,
-                            color = GrayMedium
+                            color = ArkMuted
                         )
                     },
                     leadingIcon = {
                         Icon(
                             Icons.Default.Search,
                             contentDescription = null,
-                            tint = GraySubtle,
+                            tint = ArkSubtle,
                             modifier = Modifier.size(16.dp)
                         )
                     },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = PureWhite,
-                        unfocusedBorderColor = DarkCardBorder,
-                        focusedTextColor = PureWhite,
-                        unfocusedTextColor = PureWhite,
-                        focusedContainerColor = DarkSurfaceVariant,
-                        unfocusedContainerColor = DarkSurfaceVariant
+                        focusedBorderColor = ArkInk,
+                        unfocusedBorderColor = ArkBorder,
+                        focusedTextColor = ArkInk,
+                        unfocusedTextColor = ArkInk,
+                        focusedContainerColor = ArkSurfaceVariant,
+                        unfocusedContainerColor = ArkSurfaceVariant
                     ),
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.fillMaxWidth()
@@ -193,12 +193,12 @@ fun CloneAppDialog(
                         fontFamily = ChakraPetchFontFamily,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 10.sp,
-                        color = GrayMedium
+                        color = ArkMuted
                     )
 
                     if (isScanning) {
                         CircularProgressIndicator(
-                            color = PureWhite,
+                            color = ArkInk,
                             modifier = Modifier.size(12.dp),
                             strokeWidth = 1.5.dp
                         )
@@ -212,8 +212,8 @@ fun CloneAppDialog(
                         .weight(1f)
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(PureBlack)
-                        .border(1.dp, DarkCardBorder, RoundedCornerShape(8.dp))
+                        .background(ArkPaper)
+                        .border(1.dp, ArkBorder, RoundedCornerShape(8.dp))
                         .padding(6.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
@@ -223,10 +223,10 @@ fun CloneAppDialog(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(6.dp))
-                                .background(if (isSelected) DarkSurfaceVariant else PureBlack)
+                                .background(if (isSelected) ArkSurfaceVariant else ArkPaper)
                                 .border(
                                     1.dp,
-                                    if (isSelected) PureWhite else DarkCardBorder,
+                                    if (isSelected) ArkInk else ArkBorder,
                                     RoundedCornerShape(6.dp)
                                 )
                                 .clickable {
@@ -257,7 +257,7 @@ fun CloneAppDialog(
                                         fontFamily = ChakraPetchFontFamily,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp,
-                                        color = PureWhite,
+                                        color = ArkInk,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
@@ -266,7 +266,7 @@ fun CloneAppDialog(
                                         fontFamily = ChakraPetchFontFamily,
                                         fontWeight = FontWeight.Normal,
                                         fontSize = 9.sp,
-                                        color = GraySubtle,
+                                        color = ArkSubtle,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
@@ -277,8 +277,8 @@ fun CloneAppDialog(
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(4.dp))
-                                        .background(if (isSelected) PureWhite else DarkSurface)
-                                        .border(1.dp, DarkCardBorder, RoundedCornerShape(4.dp))
+                                        .background(if (isSelected) ArkInk else ArkSurface)
+                                        .border(1.dp, ArkBorder, RoundedCornerShape(4.dp))
                                         .padding(horizontal = 5.dp, vertical = 2.dp)
                                 ) {
                                     Text(
@@ -286,14 +286,14 @@ fun CloneAppDialog(
                                         fontFamily = ChakraPetchFontFamily,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 8.sp,
-                                        color = if (isSelected) PureBlack else SilverAccent
+                                        color = if (isSelected) ArkPaper else ArkSoft
                                     )
                                 }
                                 Text(
                                     text = "${app.apkSizeBytes / (1024 * 1024)} MB",
                                     fontFamily = ChakraPetchFontFamily,
                                     fontSize = 8.sp,
-                                    color = GrayMedium
+                                    color = ArkMuted
                                 )
                             }
                         }
@@ -312,15 +312,15 @@ fun CloneAppDialog(
                         fontFamily = ChakraPetchFontFamily,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 10.sp,
-                        color = GrayMedium
+                        color = ArkMuted
                     )
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
-                            .background(DarkSurfaceVariant)
-                            .border(1.dp, DarkCardBorder, RoundedCornerShape(6.dp))
+                            .background(ArkSurfaceVariant)
+                            .border(1.dp, ArkBorder, RoundedCornerShape(6.dp))
                             .padding(horizontal = 4.dp, vertical = 2.dp)
                     ) {
                         IconButton(
@@ -335,7 +335,7 @@ fun CloneAppDialog(
                             Icon(
                                 Icons.Default.Remove,
                                 contentDescription = "Fewer clones",
-                                tint = PureWhite,
+                                tint = ArkInk,
                                 modifier = Modifier.size(14.dp)
                             )
                         }
@@ -344,7 +344,7 @@ fun CloneAppDialog(
                             fontFamily = ChakraPetchFontFamily,
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp,
-                            color = PureWhite,
+                            color = ArkInk,
                             modifier = Modifier.padding(horizontal = 6.dp)
                         )
                         IconButton(
@@ -359,7 +359,7 @@ fun CloneAppDialog(
                             Icon(
                                 Icons.Default.Add,
                                 contentDescription = "More clones",
-                                tint = PureWhite,
+                                tint = ArkInk,
                                 modifier = Modifier.size(14.dp)
                             )
                         }
@@ -385,16 +385,16 @@ fun CloneAppDialog(
                                     if (cloneCount > 1) "Clone ${index + 1} nickname" else "Clone nickname",
                                     fontFamily = ChakraPetchFontFamily,
                                     fontSize = 11.sp,
-                                    color = GrayMedium
+                                    color = ArkMuted
                                 )
                             },
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = PureWhite,
-                                unfocusedBorderColor = DarkCardBorder,
-                                focusedTextColor = PureWhite,
-                                unfocusedTextColor = PureWhite,
-                                focusedContainerColor = DarkSurfaceVariant,
-                                unfocusedContainerColor = DarkSurfaceVariant
+                                focusedBorderColor = ArkInk,
+                                unfocusedBorderColor = ArkBorder,
+                                focusedTextColor = ArkInk,
+                                unfocusedTextColor = ArkInk,
+                                focusedContainerColor = ArkSurfaceVariant,
+                                unfocusedContainerColor = ArkSurfaceVariant
                             ),
                             shape = RoundedCornerShape(6.dp),
                             modifier = Modifier
@@ -411,7 +411,7 @@ fun CloneAppDialog(
                     fontFamily = ChakraPetchFontFamily,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 10.sp,
-                    color = GrayMedium
+                    color = ArkMuted
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -426,10 +426,10 @@ fun CloneAppDialog(
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(6.dp))
-                                .background(if (isCatSelected) PureWhite else DarkSurfaceVariant)
+                                .background(if (isCatSelected) ArkInk else ArkSurfaceVariant)
                                 .border(
                                     1.dp,
-                                    if (isCatSelected) PureWhite else DarkCardBorder,
+                                    if (isCatSelected) ArkInk else ArkBorder,
                                     RoundedCornerShape(6.dp)
                                 )
                                 .clickable { selectedCategory = category }
@@ -441,7 +441,7 @@ fun CloneAppDialog(
                                 fontFamily = ChakraPetchFontFamily,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 10.sp,
-                                color = if (isCatSelected) PureBlack else PureWhite
+                                color = if (isCatSelected) ArkPaper else ArkInk
                             )
                         }
                     }
@@ -454,7 +454,7 @@ fun CloneAppDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(if (selectedApp != null) PureWhite else GrayMedium)
+                        .background(if (selectedApp != null) ArkInk else ArkMuted)
                         .clickable(enabled = selectedApp != null) {
                             selectedApp?.let { app ->
                                 onConfirmClone(
@@ -473,7 +473,7 @@ fun CloneAppDialog(
                         Icon(
                             imageVector = Icons.Default.ContentCopy,
                             contentDescription = null,
-                            tint = PureBlack,
+                            tint = ArkPaper,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
@@ -483,7 +483,7 @@ fun CloneAppDialog(
                             fontWeight = FontWeight.Bold,
                             fontSize = 12.sp,
                             letterSpacing = 1.sp,
-                            color = PureBlack
+                            color = ArkPaper
                         )
                     }
                 }

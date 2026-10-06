@@ -34,10 +34,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkeos.arkclone.R
+import com.arkeos.arkclone.ui.theme.ArkLogoFilter
 import com.arkeos.arkclone.ui.theme.ChakraPetchFontFamily
-import com.arkeos.arkclone.ui.theme.GrayMedium
-import com.arkeos.arkclone.ui.theme.PureBlack
-import com.arkeos.arkclone.ui.theme.PureWhite
+import com.arkeos.arkclone.ui.theme.ArkMuted
+import com.arkeos.arkclone.ui.theme.ArkPaper
+import com.arkeos.arkclone.ui.theme.ArkInk
 import kotlinx.coroutines.delay
 
 @Composable
@@ -75,7 +76,7 @@ fun StartupSplash(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(PureBlack),
+                .background(ArkPaper),
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -90,6 +91,7 @@ fun StartupSplash(
                 Image(
                     painter = painterResource(id = R.drawable.ic_ark_clone_logo),
                     contentDescription = "Ark Clone Emblem",
+                    colorFilter = ArkLogoFilter,
                     modifier = Modifier.size(140.dp)
                 )
 
@@ -101,7 +103,7 @@ fun StartupSplash(
                     fontWeight = FontWeight.Bold,
                     fontSize = 26.sp,
                     letterSpacing = 4.sp,
-                    color = PureWhite
+                    color = ArkInk
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
@@ -112,7 +114,7 @@ fun StartupSplash(
                     fontWeight = FontWeight.Medium,
                     fontSize = 11.sp,
                     letterSpacing = 2.5.sp,
-                    color = GrayMedium
+                    color = ArkMuted
                 )
             }
 
@@ -124,12 +126,12 @@ fun StartupSplash(
                     .alpha(alpha)
             ) {
                 Text(
-                    text = "ISOLATED ENCLAVES • MULTI-INSTANCE",
+                    text = "Made By: John Ruenz",
                     fontFamily = ChakraPetchFontFamily,
                     fontWeight = FontWeight.Normal,
                     fontSize = 10.sp,
                     letterSpacing = 2.sp,
-                    color = GrayMedium
+                    color = ArkMuted
                 )
             }
         }
