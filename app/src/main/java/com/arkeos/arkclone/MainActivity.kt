@@ -77,6 +77,7 @@ fun MainAppContent(
 ) {
     var isSplashActive by remember { mutableStateOf(true) }
 
+    val isGridView by viewModel.isGridView.collectAsState()
     val instances by viewModel.instances.collectAsState()
     val activeInstanceId by viewModel.activeInstanceId.collectAsState()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
@@ -124,11 +125,13 @@ fun MainAppContent(
                 instances = instances,
                 installedApps = installedApps,
                 isDarkMode = isDarkMode,
+                isGridView = isGridView,
                 selectedCategory = selectedCategory,
                 installedCount = installedCount,
                 freeRamFormatted = freeRamFormatted,
                 apkSizeFormatted = apkSizeFormatted,
                 onToggleDarkMode = { viewModel.toggleDarkMode() },
+                onToggleGridView = { viewModel.toggleGridView() },
                 onCategorySelect = { cat -> viewModel.setCategoryFilter(cat) },
                 onOpenCloneDialog = {
                     viewModel.scanInstalledApks()

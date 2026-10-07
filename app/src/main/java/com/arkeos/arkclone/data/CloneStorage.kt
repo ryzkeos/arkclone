@@ -15,10 +15,14 @@ class CloneStorage(private val context: Context) {
     companion object {
         private const val KEY_INSTANCES = "saved_instances"
         private const val KEY_DARK_MODE = "dark_mode_enabled"
+        private const val KEY_GRID_VIEW = "grid_view_enabled"
     }
 
     fun isDarkMode(): Boolean = prefs.getBoolean(KEY_DARK_MODE, true)
     fun setDarkMode(enabled: Boolean) = prefs.edit().putBoolean(KEY_DARK_MODE, enabled).apply()
+
+    fun isGridView(): Boolean = prefs.getBoolean(KEY_GRID_VIEW, false)
+    fun setGridView(enabled: Boolean) = prefs.edit().putBoolean(KEY_GRID_VIEW, enabled).apply()
 
     fun loadInstances(): List<ClonedInstance> {
         val jsonString = prefs.getString(KEY_INSTANCES, null)

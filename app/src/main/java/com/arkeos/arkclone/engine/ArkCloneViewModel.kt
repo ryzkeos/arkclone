@@ -44,6 +44,9 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
     private val _isDarkMode = MutableStateFlow(true)
     val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
 
+    private val _isGridView = MutableStateFlow(false)
+    val isGridView: StateFlow<Boolean> = _isGridView.asStateFlow()
+
     private val _installedApps = MutableStateFlow<List<RealInstalledApk>>(emptyList())
     val installedApps: StateFlow<List<RealInstalledApk>> = _installedApps.asStateFlow()
 
@@ -143,12 +146,19 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
         _instances.value = loaded
         storage.saveInstances(loaded)
         _isDarkMode.value = storage.isDarkMode()
+        _isGridView.value = storage.isGridView()
     }
 
     fun toggleDarkMode() {
         val nextMode = !_isDarkMode.value
         _isDarkMode.value = nextMode
         storage.setDarkMode(nextMode)
+    }
+
+    fun toggleGridView() {
+        val nextMode = !_isGridView.value
+        _isGridView.value = nextMode
+        storage.setGridView(nextMode)
     }
 
     fun scanInstalledApks() {
