@@ -13,9 +13,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -75,14 +76,15 @@ fun ArkToastHost(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .statusBarsPadding()
+            .navigationBarsPadding()
+            .imePadding()
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        contentAlignment = Alignment.TopCenter
+        contentAlignment = Alignment.BottomCenter
     ) {
         AnimatedVisibility(
             visible = visible,
-            enter = slideInVertically(animationSpec = tween(220)) { -it } + fadeIn(tween(220)),
-            exit = slideOutVertically(animationSpec = tween(200)) { -it } + fadeOut(tween(200))
+            enter = slideInVertically(animationSpec = tween(220)) { it } + fadeIn(tween(220)),
+            exit = slideOutVertically(animationSpec = tween(200)) { it } + fadeOut(tween(200))
         ) {
             shown?.let { current ->
                 ToastCard(

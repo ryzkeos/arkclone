@@ -158,7 +158,7 @@ fun MainAppContent(
         ArkToastHost(
             toast = toast,
             onDismiss = { id -> viewModel.dismissToast(id) },
-            modifier = Modifier.align(Alignment.TopCenter)
+            modifier = Modifier.align(Alignment.BottomCenter)
         )
 
         // Startup splash overlay
