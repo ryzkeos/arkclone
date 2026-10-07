@@ -259,11 +259,11 @@ fun DashboardScreen(
                                         overflow = TextOverflow.Ellipsis
                                     )
                                     Text(
-                                        text = "${app.packageName} • ${app.apkSizeBytes / (1024 * 1024)} MB",
+                                        text = "${app.apkSizeBytes / (1024 * 1024)} MB",
                                         fontFamily = ChakraPetchFontFamily,
                                         fontWeight = FontWeight.Normal,
-                                        fontSize = 10.sp,
-                                        color = ArkSubtle,
+                                        fontSize = 9.sp,
+                                        color = ArkMuted,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
