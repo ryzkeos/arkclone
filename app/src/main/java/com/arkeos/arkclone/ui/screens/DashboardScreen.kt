@@ -31,6 +31,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +42,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkeos.arkclone.engine.RealAppIconView
+import com.arkeos.arkclone.engine.SuggestionRanker
 import com.arkeos.arkclone.model.AppCategory
 import com.arkeos.arkclone.model.ClonedInstance
 import com.arkeos.arkclone.model.RealInstalledApk
@@ -84,6 +86,9 @@ fun DashboardScreen(
         instances.filter { it.category == selectedCategory }
     }
 
+    val ranked_suggestions = remember(installedApps, instances) {
+        SuggestionRanker.rank(installedApps, instances)
+    }
     val gridColumns = (LocalConfiguration.current.screenWidthDp / 84).coerceIn(3, 8)
 
     Scaffold(
@@ -224,7 +229,7 @@ fun DashboardScreen(
                 }
 
                 // List of suggested applications
-                val suggestions = installedApps.take(8)
+                val suggestions = ranked_suggestions.take(8)
                 items(
                     items = suggestions,
                     key = { it.packageName }
@@ -387,7 +392,7 @@ fun DashboardScreen(
                 }
 
                 // Suggestions footer row if user already has some clones
-                if (installedApps.isNotEmpty()) {
+                if (ranked_suggestions.isNotEmpty()) {
                     item {
                         Column(
                             modifier = Modifier
@@ -408,7 +413,7 @@ fun DashboardScreen(
                             LazyRow(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                items(installedApps.take(6)) { app ->
+                                items(ranked_suggestions.take(6)) { app ->
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(8.dp))
