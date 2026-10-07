@@ -50,28 +50,27 @@ fun StartupSplash(
 
     val scale by animateFloatAsState(
         targetValue = if (startAnim) 1.0f else 0.85f,
-        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
         label = "splashScale"
     )
 
     val alpha by animateFloatAsState(
         targetValue = if (startAnim) 1.0f else 0.0f,
-        animationSpec = tween(durationMillis = 400),
+        animationSpec = tween(durationMillis = 250),
         label = "splashAlpha"
     )
 
     LaunchedEffect(Unit) {
         startAnim = true
-        // Instant, snappy splash feel like Facebook / Meta Android startup
-        delay(650)
+        delay(350)
         isVisible = false
-        delay(250)
+        delay(180)
         onSplashFinished()
     }
 
     AnimatedVisibility(
         visible = isVisible,
-        exit = fadeOut(animationSpec = tween(250)) + scaleOut(targetScale = 1.08f, animationSpec = tween(250))
+        exit = fadeOut(animationSpec = tween(180)) + scaleOut(targetScale = 1.08f, animationSpec = tween(180))
     ) {
         Box(
             modifier = Modifier

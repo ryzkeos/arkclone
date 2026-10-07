@@ -3,6 +3,7 @@ package com.arkeos.arkclone.engine
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import com.arkeos.arkclone.model.AppCategory
@@ -15,6 +16,7 @@ class InstalledAppScanner(private val context: Context) {
         val result = mutableListOf<RealInstalledApk>()
         val pm = context.packageManager
         val seenPackages = mutableSetOf<String>()
+        val packageInfos = loadPackageInfos(pm)
 
         try {
             // First: scan launcher activities (the real user-facing apps on phone)
@@ -36,11 +38,7 @@ class InstalledAppScanner(private val context: Context) {
                     try { File(sourceDir).length() } catch (e: Exception) { 0L }
                 } else 0L
 
-                val packageInfo = try {
-                    pm.getPackageInfo(pkgName, 0)
-                } catch (e: Exception) {
-                    null
-                }
+                val packageInfo = packageInfos[pkgName] ?: lookupPackageInfo(pm, pkgName)
 
                 val versionName = packageInfo?.versionName ?: "1.0"
                 val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -72,9 +70,8 @@ class InstalledAppScanner(private val context: Context) {
             e.printStackTrace()
         }
 
-        // Second: if launcher returned few, scan all installed packages
-        try {
-            val allInstalled = pm.getInstalledApplications(PackageManager.GET_META_DATA)
+        if (result.size < MIN_LAUNCHER_APPS) try {
+            val allInstalled = pm.getInstalledApplications(0)
             for (appInfo in allInstalled) {
                 val pkgName = appInfo.packageName
                 if (pkgName == context.packageName || seenPackages.contains(pkgName)) continue
@@ -91,7 +88,7 @@ class InstalledAppScanner(private val context: Context) {
                         try { File(sourceDir).length() } catch (e: Exception) { 0L }
                     } else 0L
 
-                    val pInfo = try { pm.getPackageInfo(pkgName, 0) } catch (e: Exception) { null }
+                    val pInfo = packageInfos[pkgName] ?: lookupPackageInfo(pm, pkgName)
                     val vName = pInfo?.versionName ?: "1.0"
                     val vCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                         pInfo?.longVersionCode ?: 1L
@@ -126,6 +123,23 @@ class InstalledAppScanner(private val context: Context) {
             compareByDescending<RealInstalledApk> { !it.isSystemApp }
                 .thenBy { it.appName.lowercase() }
         )
+    }
+
+    @Suppress("DEPRECATION")
+    private fun loadPackageInfos(pm: PackageManager): Map<String, PackageInfo> = try {
+        pm.getInstalledPackages(0).associateBy { it.packageName }
+    } catch (e: Exception) {
+        emptyMap()
+    }
+
+    private fun lookupPackageInfo(pm: PackageManager, packageName: String): PackageInfo? = try {
+        pm.getPackageInfo(packageName, 0)
+    } catch (e: Exception) {
+        null
+    }
+
+    private companion object {
+        const val MIN_LAUNCHER_APPS = 8
     }
 
     private fun categorize(appName: String, pkgName: String): AppCategory {

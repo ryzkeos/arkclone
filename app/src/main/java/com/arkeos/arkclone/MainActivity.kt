@@ -85,6 +85,7 @@ fun MainAppContent(
 
     val showCloneDialog by viewModel.showCloneDialog.collectAsState()
     val toast by viewModel.toast.collectAsState()
+    val cloneDialogTarget by viewModel.cloneDialogTarget.collectAsState()
 
     val context = LocalContext.current
     val freeRamBytes by produceState(initialValue = 0L) {
@@ -131,9 +132,9 @@ fun MainAppContent(
                 onCategorySelect = { cat -> viewModel.setCategoryFilter(cat) },
                 onOpenCloneDialog = {
                     viewModel.scanInstalledApks()
-                    viewModel.setShowCloneDialog(true)
+                    viewModel.openCloneDialog()
                 },
-                onQuickClone = { app -> viewModel.quickCloneSuggestedApk(app) },
+                onSuggestionClick = { app -> viewModel.openCloneDialog(app.packageName) },
                 onLaunchInstance = { id -> viewModel.openDetails(id) },
                 onLaunchRealAppDirectly = { id -> viewModel.launchInstance(id) },
                 onOpenAppSettings = { pkg -> viewModel.openRealAppSettings(pkg) },
@@ -146,6 +147,7 @@ fun MainAppContent(
             CloneAppDialog(
                 availableApps = installedApps,
                 isScanning = isScanning,
+                initialPackage = cloneDialogTarget,
                 onDismiss = { viewModel.setShowCloneDialog(false) },
                 onConfirmClone = { targetApk, count, aliases, category ->
                     viewModel.cloneRealApk(targetApk, count, aliases, category)

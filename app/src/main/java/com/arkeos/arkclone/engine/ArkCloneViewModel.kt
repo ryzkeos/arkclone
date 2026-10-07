@@ -54,6 +54,9 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
     private val _showCloneDialog = MutableStateFlow(false)
     val showCloneDialog: StateFlow<Boolean> = _showCloneDialog.asStateFlow()
 
+    private val _cloneDialogTarget = MutableStateFlow<String?>(null)
+    val cloneDialogTarget: StateFlow<String?> = _cloneDialogTarget.asStateFlow()
+
     private val _toast = MutableStateFlow<ArkToast?>(null)
     val toast: StateFlow<ArkToast?> = _toast.asStateFlow()
 
@@ -61,7 +64,6 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
     init {
         loadData()
         scanInstalledApks()
-        refreshInstallStates()
         viewModelScope.launch {
             CloneInstallEvents.flow.collect { event -> applyInstallEvent(event) }
         }
@@ -99,20 +101,27 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun refreshInstallStates() {
-        _instances.update { list ->
-            list.map { inst ->
-                if (inst.clonePackageName.isBlank()) return@map inst
-                val installed = cloneInstaller.isInstalled(inst.clonePackageName)
-                when {
-                    installed && inst.installState != CloneInstallState.INSTALLED ->
-                        inst.copy(installState = CloneInstallState.INSTALLED, installError = "")
-                    !installed && inst.installState == CloneInstallState.INSTALLED ->
-                        inst.copy(installState = CloneInstallState.NOT_INSTALLED)
-                    else -> inst
+        val tracked = _instances.value.map { it.clonePackageName }.filter { it.isNotBlank() }.toSet()
+        if (tracked.isEmpty()) return
+        viewModelScope.launch {
+            val installedPackages = withContext(Dispatchers.IO) {
+                tracked.filter { cloneInstaller.isInstalled(it) }.toSet()
+            }
+            _instances.update { list ->
+                list.map { inst ->
+                    if (inst.clonePackageName !in tracked) return@map inst
+                    val installed = inst.clonePackageName in installedPackages
+                    when {
+                        installed && inst.installState != CloneInstallState.INSTALLED ->
+                            inst.copy(installState = CloneInstallState.INSTALLED, installError = "")
+                        !installed && inst.installState == CloneInstallState.INSTALLED ->
+                            inst.copy(installState = CloneInstallState.NOT_INSTALLED)
+                        else -> inst
+                    }
                 }
             }
+            storage.saveInstances(_instances.value)
         }
-        storage.saveInstances(_instances.value)
     }
 
     private fun showToast(message: String, type: ToastType = ToastType.INFO) {
@@ -143,11 +152,23 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun scanInstalledApks() {
+        if (_isScanning.value) return
+        _isScanning.value = true
         viewModelScope.launch {
-            _isScanning.value = true
-            val apps = appScanner.scanInstalledApps()
-            _installedApps.value = apps
-            _isScanning.value = false
+            try {
+                val apps = withContext(Dispatchers.Default) { appScanner.scanInstalledApps() }
+                _installedApps.value = apps
+                prefetchIcons(apps)
+            } finally {
+                _isScanning.value = false
+            }
+        }
+    }
+
+    private fun prefetchIcons(apps: List<RealInstalledApk>) {
+        val context = getApplication<Application>()
+        viewModelScope.launch(Dispatchers.IO) {
+            apps.take(ICON_PREFETCH_COUNT).forEach { AppIconCache.getAppIcon(context, it.packageName) }
         }
     }
 
@@ -157,6 +178,12 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
 
     fun setShowCloneDialog(show: Boolean) {
         _showCloneDialog.value = show
+        if (!show) _cloneDialogTarget.value = null
+    }
+
+    fun openCloneDialog(packageName: String? = null) {
+        _cloneDialogTarget.value = packageName
+        _showCloneDialog.value = true
     }
 
     fun openDetails(instanceId: String) {
@@ -230,14 +257,6 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
         }
         _instances.update { it.filter { inst -> inst.id != instanceId } }
         storage.saveInstances(_instances.value)
-    }
-
-    fun quickCloneSuggestedApk(targetApk: RealInstalledApk) {
-        cloneRealApk(
-            targetApk = targetApk,
-            cloneCount = 1,
-            customCategory = targetApk.category
-        )
     }
 
     fun cloneRealApk(
@@ -327,6 +346,10 @@ class ArkCloneViewModel(application: Application) : AndroidViewModel(application
                 }
             }
         }
+    }
+
+    private companion object {
+        const val ICON_PREFETCH_COUNT = 24
     }
 
     private fun clonePackageFor(original: String, number: Int): String = "$original.clone$number"

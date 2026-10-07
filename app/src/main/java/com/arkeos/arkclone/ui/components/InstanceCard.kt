@@ -13,10 +13,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.PlayArrow
@@ -120,13 +122,19 @@ fun InstanceCard(
                     }
                 }
 
-                // Status & Menu
+                Spacer(modifier = Modifier.width(18.dp))
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(if (isInstalled) ArkInk else ArkMuted)
+                    Icon(
+                        imageVector = when (instance.installState) {
+                            CloneInstallState.INSTALLED -> Icons.Default.CheckCircle
+                            CloneInstallState.PREPARING,
+                            CloneInstallState.AWAITING_USER -> Icons.Default.HourglassEmpty
+                            else -> Icons.Default.ErrorOutline
+                        },
+                        contentDescription = instance.installState.label,
+                        tint = if (isInstalled) ArkInk else ArkMuted,
+                        modifier = Modifier.size(14.dp)
                     )
 
                     Spacer(modifier = Modifier.width(6.dp))
