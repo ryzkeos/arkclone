@@ -21,16 +21,20 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -42,6 +46,7 @@ import com.arkeos.arkclone.model.ClonedInstance
 import com.arkeos.arkclone.model.RealInstalledApk
 import com.arkeos.arkclone.ui.components.DashboardTopBar
 import com.arkeos.arkclone.ui.components.InstanceCard
+import com.arkeos.arkclone.ui.components.InstanceGridItem
 import com.arkeos.arkclone.ui.components.ResourceMetricHud
 import com.arkeos.arkclone.ui.theme.ChakraPetchFontFamily
 import com.arkeos.arkclone.ui.theme.ArkBorder
@@ -58,11 +63,13 @@ fun DashboardScreen(
     instances: List<ClonedInstance>,
     installedApps: List<RealInstalledApk>,
     isDarkMode: Boolean,
+    isGridView: Boolean,
     selectedCategory: AppCategory,
     installedCount: Int,
     freeRamFormatted: String,
     apkSizeFormatted: String,
     onToggleDarkMode: () -> Unit,
+    onToggleGridView: () -> Unit,
     onCategorySelect: (AppCategory) -> Unit,
     onOpenCloneDialog: () -> Unit,
     onSuggestionClick: (RealInstalledApk) -> Unit,
@@ -76,6 +83,8 @@ fun DashboardScreen(
     } else {
         instances.filter { it.category == selectedCategory }
     }
+
+    val gridColumns = (LocalConfiguration.current.screenWidthDp / 84).coerceIn(3, 8)
 
     Scaffold(
         containerColor = ArkPaper,
@@ -319,22 +328,61 @@ fun DashboardScreen(
                             letterSpacing = 1.sp,
                             color = ArkSubtle
                         )
+
+                        IconButton(
+                            onClick = onToggleGridView,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .testTag("toggle_grid_view")
+                        ) {
+                            Icon(
+                                imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
+                                contentDescription = if (isGridView) "Switch to list view" else "Switch to icon view",
+                                tint = ArkSubtle,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                     }
                 }
 
-                // Render existing Cloned Instances
-                items(
-                    items = filteredInstances,
-                    key = { it.id }
-                ) { instance ->
-                    Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp)) {
-                        InstanceCard(
-                            instance = instance,
-                            onLaunch = { onLaunchInstance(instance.id) },
-                            onLaunchRealAppDirectly = { onLaunchRealAppDirectly(instance.id) },
-                            onOpenAppSettings = { onOpenAppSettings(instance.clonePackageName.ifBlank { instance.packageName }) },
-                            onDelete = { onDeleteInstance(instance.id) }
-                        )
+                if (isGridView) {
+                    items(
+                        items = filteredInstances.chunked(gridColumns),
+                        key = { row -> row.first().id }
+                    ) { rowItems ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 2.dp)
+                        ) {
+                            rowItems.forEach { instance ->
+                                InstanceGridItem(
+                                    instance = instance,
+                                    onLaunchRealAppDirectly = { onLaunchRealAppDirectly(instance.id) },
+                                    onOpenAppSettings = { onOpenAppSettings(instance.clonePackageName.ifBlank { instance.packageName }) },
+                                    onDelete = { onDeleteInstance(instance.id) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            repeat(gridColumns - rowItems.size) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
+                    }
+                } else {
+                    items(
+                        items = filteredInstances,
+                        key = { it.id }
+                    ) { instance ->
+                        Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp)) {
+                            InstanceCard(
+                                instance = instance,
+                                onLaunch = { onLaunchInstance(instance.id) },
+                                onLaunchRealAppDirectly = { onLaunchRealAppDirectly(instance.id) },
+                                onOpenAppSettings = { onOpenAppSettings(instance.clonePackageName.ifBlank { instance.packageName }) },
+                                onDelete = { onDeleteInstance(instance.id) }
+                            )
+                        }
                     }
                 }
 

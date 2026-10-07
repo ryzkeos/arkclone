@@ -16,15 +16,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -161,82 +156,13 @@ fun InstanceCard(
                             )
                         }
 
-                        DropdownMenu(
+                        InstanceActionMenu(
                             expanded = showMenu,
-                            onDismissRequest = { showMenu = false },
-                            modifier = Modifier
-                                .background(ArkSurface)
-                                .border(1.dp, ArkBorder)
-                        ) {
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        "Launch Application",
-                                        fontFamily = ChakraPetchFontFamily,
-                                        color = ArkInk,
-                                        fontSize = 12.sp
-                                    )
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.OpenInNew,
-                                        contentDescription = null,
-                                        tint = ArkInk,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                },
-                                onClick = {
-                                    showMenu = false
-                                    onLaunchRealAppDirectly()
-                                }
-                            )
-
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        "App Info (Settings)",
-                                        fontFamily = ChakraPetchFontFamily,
-                                        color = ArkInk,
-                                        fontSize = 12.sp
-                                    )
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.Settings,
-                                        contentDescription = null,
-                                        tint = ArkInk,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                },
-                                onClick = {
-                                    showMenu = false
-                                    onOpenAppSettings()
-                                }
-                            )
-
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        "Delete Clone",
-                                        fontFamily = ChakraPetchFontFamily,
-                                        color = ArkInk,
-                                        fontSize = 12.sp
-                                    )
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = null,
-                                        tint = ArkMuted,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                },
-                                onClick = {
-                                    showMenu = false
-                                    onDelete()
-                                }
-                            )
-                        }
+                            onDismiss = { showMenu = false },
+                            onLaunchRealAppDirectly = onLaunchRealAppDirectly,
+                            onOpenAppSettings = onOpenAppSettings,
+                            onDelete = onDelete
+                        )
                     }
                 }
             }
