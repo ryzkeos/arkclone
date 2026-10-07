@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,6 +35,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -68,6 +70,7 @@ private const val MAX_CLONES = 5
 fun CloneAppDialog(
     availableApps: List<RealInstalledApk>,
     isScanning: Boolean,
+    initialPackage: String? = null,
     onDismiss: () -> Unit,
     onConfirmClone: (
         targetApk: RealInstalledApk,
@@ -77,10 +80,14 @@ fun CloneAppDialog(
     ) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    var selectedApp by remember { mutableStateOf<RealInstalledApk?>(availableApps.firstOrNull()) }
+    val initialApp = remember {
+        availableApps.firstOrNull { it.packageName == initialPackage } ?: availableApps.firstOrNull()
+    }
+    var selectedApp by remember { mutableStateOf(initialApp) }
     var cloneCount by remember { mutableIntStateOf(1) }
     val nicknames = remember { mutableStateListOf("") }
-    var selectedCategory by remember { mutableStateOf(AppCategory.TOOLS) }
+    var selectedCategory by remember { mutableStateOf(initialApp?.category ?: AppCategory.TOOLS) }
+    val listState = rememberLazyListState()
 
     val filteredApps = remember(searchQuery, availableApps) {
         if (searchQuery.isBlank()) availableApps
@@ -88,6 +95,11 @@ fun CloneAppDialog(
             it.appName.contains(searchQuery, ignoreCase = true) ||
                     it.packageName.contains(searchQuery, ignoreCase = true)
         }
+    }
+
+    LaunchedEffect(Unit) {
+        val index = filteredApps.indexOfFirst { it.packageName == initialApp?.packageName }
+        if (index > 0) listState.scrollToItem(index)
     }
 
     val selectableCategories = listOf(
@@ -208,6 +220,7 @@ fun CloneAppDialog(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth()
@@ -217,7 +230,7 @@ fun CloneAppDialog(
                         .padding(6.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    items(filteredApps) { app ->
+                    items(items = filteredApps, key = { it.packageName }) { app ->
                         val isSelected = selectedApp?.packageName == app.packageName
                         Row(
                             modifier = Modifier

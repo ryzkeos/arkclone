@@ -65,7 +65,7 @@ fun DashboardScreen(
     onToggleDarkMode: () -> Unit,
     onCategorySelect: (AppCategory) -> Unit,
     onOpenCloneDialog: () -> Unit,
-    onQuickClone: (RealInstalledApk) -> Unit,
+    onSuggestionClick: (RealInstalledApk) -> Unit,
     onLaunchInstance: (String) -> Unit,
     onLaunchRealAppDirectly: (String) -> Unit,
     onOpenAppSettings: (String) -> Unit,
@@ -204,7 +204,7 @@ fun DashboardScreen(
                         }
 
                         Text(
-                            text = "Tap any installed app below to immediately clone and isolate its data:",
+                            text = "Tap an app below to clone it:",
                             fontFamily = ChakraPetchFontFamily,
                             fontWeight = FontWeight.Normal,
                             fontSize = 11.sp,
@@ -275,7 +275,7 @@ fun DashboardScreen(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(6.dp))
                                     .background(ArkInk)
-                                    .clickable { onQuickClone(app) }
+                                    .clickable { onSuggestionClick(app) }
                                     .padding(horizontal = 12.dp, vertical = 8.dp)
                                     .testTag("quick_clone_btn_${app.packageName}"),
                                 contentAlignment = Alignment.Center
@@ -366,7 +366,7 @@ fun DashboardScreen(
                                             .clip(RoundedCornerShape(8.dp))
                                             .background(ArkSurfaceVariant)
                                             .border(1.dp, ArkBorder, RoundedCornerShape(8.dp))
-                                            .clickable { onQuickClone(app) }
+                                            .clickable { onSuggestionClick(app) }
                                             .padding(horizontal = 10.dp, vertical = 8.dp)
                                     ) {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
