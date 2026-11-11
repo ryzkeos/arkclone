@@ -6,7 +6,7 @@ Run the Same App with Multiple Accounts, Each Clone Fully Isolated.
 
 Ark Clone makes a real, separate copy of an installed app. Each clone gets its own package name, so it has its own data, its own login, and no link to the original or to other clones. Clones show up in the launcher like any freshly installed app.
 
-How it works: the app's APK (and split APKs) are copied, the package name in the manifest is changed to `<original>.clone<n>`, provider authorities and custom permissions are renamed to avoid conflicts, the result is signed with a key held in the Android Keystore, and it is installed through the system installer.
+How It Works: the app's APK (and split APKs) are copied, the package name in the manifest is changed to `<original>.clone<n>`, provider authorities and custom permissions are renamed to avoid conflicts, the result is signed with a key held in the Android Keystore, and it is installed through the system installer.
 
 Limits: apps that check their own signature, use Google Sign-In, Play Integrity, or Firebase push tied to the original package may not work in a clone.
 
@@ -21,7 +21,7 @@ Limits: apps that check their own signature, use Google Sign-In, Play Integrity,
 
 - Author: ryzkeos
 - Published: October 7, 2026
-- Built with: Kotlin, Android (min sdk 24)
+- Built With: Kotlin, Android (min sdk 24)
 
 ## Version History
 
@@ -29,4 +29,4 @@ Limits: apps that check their own signature, use Google Sign-In, Play Integrity,
 
 - Clones are real separate packages, so each one has its own data and login.
 - Repackage: the manifest package name becomes `<original>.clone<n>`, and provider authorities and custom permissions are renamed to avoid conflicts.
-- Sign and install: the clone is signed with a key held in the Android Keystore and installed through the system installer.
+- Sign and Install: the clone is signed with a key held in the Android Keystore and installed through the system installer.
