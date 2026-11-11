@@ -1,6 +1,6 @@
 # Ark Clone
 
-Run the same app with multiple accounts, each clone fully isolated.
+Run the Same App with Multiple Accounts, Each Clone Fully Isolated.
 
 ## About
 
@@ -10,22 +10,23 @@ How it works: the app's APK (and split APKs) are copied, the package name in the
 
 Limits: apps that check their own signature, use Google Sign-In, Play Integrity, or Firebase push tied to the original package may not work in a clone.
 
-## Installation
-
-1. Open the project in Android Studio and run the `app` module (min sdk 24).
-2. On first clone, allow Ark Clone to install unknown apps when asked.
-
 ## Usage
 
-1. Tap clone and pick an app.
+1. Tap clone and pick an app. On the first clone, allow Ark Clone to install unknown apps when asked.
 2. Confirm the system install prompt.
 3. Launch the clone from Ark Clone or the launcher and sign in with a different account.
 4. Deleting a clone opens the system uninstall prompt for its package.
 
 ## Credits
 
-Author: arkeos-kzenon
+- Author: ryzkeos
+- Published: October 7, 2026
+- Built with: Kotlin, Android (min sdk 24)
 
 ## Version History
 
-- v0.1: clones are real separate packages (repackage, sign, install)
+### v0.1 (2026-10-07) Real Separate Packages
+
+- Clones are real separate packages, so each one has its own data and login.
+- Repackage: the manifest package name becomes `<original>.clone<n>`, and provider authorities and custom permissions are renamed to avoid conflicts.
+- Sign and install: the clone is signed with a key held in the Android Keystore and installed through the system installer.
