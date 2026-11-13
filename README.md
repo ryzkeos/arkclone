@@ -21,12 +21,43 @@ Limits: apps that check their own signature, use Google Sign-In, Play Integrity,
 
 - Author: ryzkeos
 - Published: October 7, 2026
+- Current Version: v1.0.1
 - Built With: Kotlin, Android (min sdk 24)
 
 ## Version History
 
-### v0.1 (2026-10-07) Real Separate Packages
+### v1.0.1 (2026-11-13) Light Mode Button Contrast
 
-- Clones are real separate packages, so each one has its own data and login.
-- Repackage: the manifest package name becomes `<original>.clone<n>`, and provider authorities and custom permissions are renamed to avoid conflicts.
-- Sign and Install: the clone is signed with a key held in the Android Keystore and installed through the system installer.
+- Light Mode: action buttons use a softer dark gray (#555555) instead of pure black, keeping a 7.5:1 contrast ratio with white labels.
+- Theme: new `action` color in the palette, applied to the launch, clone, and quick clone buttons, category filters, and the add button. Dark mode is unchanged.
+- Version: versionName 1.0.1, versionCode 2.
+
+### v1.0.0 (2026-11-13) Stable Release
+
+- First stable release. Version name set to 1.0.0 in the app module.
+- Release Build: R8 minification and resource shrinking with keep rules, and a debug application id suffix so debug and release builds install side by side.
+- Build System: Gradle wrapper 9.3.1 included, so the project builds without a local Gradle install.
+- Feature set and behavior carried over from v0.3 with no functional changes.
+
+### v0.3 (2026-11-03) Suggestion Ranking
+
+- Suggested apps are ordered by clone demand and category instead of alphabetically.
+
+### v0.2 (2026-10-07) UI and Build Hardening
+
+- Clone Flow: the clone dialog is restructured, can be opened directly from the suggestions list, shows install status, and drops failed installs from the clone list.
+- Cloned Apps View: list and icon layouts with a long press action menu.
+- Theming: light mode support, nickname display, and a split monochrome and foreground vector layer for the themed icon, which fixes a crash.
+- Feedback: toast notifications are anchored at the bottom, above the navigation bar and keyboard.
+- Performance: reduced startup time.
+- Release Build: R8 minification and resource shrinking enabled with keep rules.
+- Debug Build: separate application id suffix, so debug and release install side by side.
+
+### v0.1 (2026-10-07) Cloning Pipeline
+
+- Manifest Patcher: binary manifest rewrite sets the package name to `<original>.clone<n>` and renames provider authorities and custom permissions to avoid conflicts.
+- Repackager: zip rewriter rebuilds base and split APKs with the patched manifest.
+- Signer: clones are signed with a key held in the Android Keystore.
+- Installer: clones install through the system package installer and run as standalone packages with their own data.
+- Data Sources: dashboard and clone details read device and package data from the system, and the legacy runner, notification bridge, and sandbox state were removed.
+- Namespace: application id and namespace set to `com.arkeos.arkclone`.
