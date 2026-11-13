@@ -61,6 +61,7 @@ import com.arkeos.arkclone.ui.theme.ArkSurfaceVariant
 import com.arkeos.arkclone.ui.theme.ArkMuted
 import com.arkeos.arkclone.ui.theme.ArkSubtle
 import com.arkeos.arkclone.ui.theme.ArkPaper
+import com.arkeos.arkclone.ui.theme.ArkAction
 import com.arkeos.arkclone.ui.theme.ArkInk
 import com.arkeos.arkclone.ui.theme.ArkSoft
 
@@ -441,7 +442,7 @@ fun CloneAppDialog(
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(6.dp))
-                                .background(if (isCatSelected) ArkInk else ArkSurfaceVariant)
+                                .background(if (isCatSelected) ArkAction else ArkSurfaceVariant)
                                 .border(
                                     1.dp,
                                     if (isCatSelected) ArkInk else ArkBorder,
@@ -469,7 +470,7 @@ fun CloneAppDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(if (selectedApp != null) ArkInk else ArkMuted)
+                        .background(if (selectedApp != null) ArkAction else ArkMuted)
                         .clickable(enabled = selectedApp != null) {
                             selectedApp?.let { app ->
                                 onConfirmClone(

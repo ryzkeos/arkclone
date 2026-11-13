@@ -13,6 +13,7 @@ class ArkPalette(
     val isDark: Boolean,
     val paper: Color,
     val ink: Color,
+    val action: Color,
     val surface: Color,
     val surfaceVariant: Color,
     val border: Color,
@@ -26,6 +27,7 @@ val DarkPalette = ArkPalette(
     isDark = true,
     paper = Color(0xFF000000),
     ink = Color(0xFFFFFFFF),
+    action = Color(0xFFFFFFFF),
     surface = Color(0xFF121212),
     surfaceVariant = Color(0xFF181818),
     border = Color(0xFF262626),
@@ -39,6 +41,7 @@ val LightPalette = ArkPalette(
     isDark = false,
     paper = Color(0xFFFFFFFF),
     ink = Color(0xFF000000),
+    action = Color(0xFF555555),
     surface = Color(0xFFF2F2F2),
     surfaceVariant = Color(0xFFEDEDED),
     border = Color(0xFFD6D6D6),
@@ -52,6 +55,7 @@ val LocalArkPalette = staticCompositionLocalOf { DarkPalette }
 
 val ArkPaper: Color @Composable @ReadOnlyComposable get() = LocalArkPalette.current.paper
 val ArkInk: Color @Composable @ReadOnlyComposable get() = LocalArkPalette.current.ink
+val ArkAction: Color @Composable @ReadOnlyComposable get() = LocalArkPalette.current.action
 val ArkSurface: Color @Composable @ReadOnlyComposable get() = LocalArkPalette.current.surface
 val ArkSurfaceVariant: Color @Composable @ReadOnlyComposable get() = LocalArkPalette.current.surfaceVariant
 val ArkBorder: Color @Composable @ReadOnlyComposable get() = LocalArkPalette.current.border
