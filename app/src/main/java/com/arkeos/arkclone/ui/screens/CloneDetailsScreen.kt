@@ -43,6 +43,7 @@ import com.arkeos.arkclone.ui.theme.ArkSurfaceVariant
 import com.arkeos.arkclone.ui.theme.ArkMuted
 import com.arkeos.arkclone.ui.theme.ArkSubtle
 import com.arkeos.arkclone.ui.theme.ArkPaper
+import com.arkeos.arkclone.ui.theme.ArkAction
 import com.arkeos.arkclone.ui.theme.ArkInk
 
 @Composable
@@ -125,7 +126,7 @@ fun CloneDetailsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(12.dp))
-                        .background(ArkInk)
+                        .background(ArkAction)
                         .clickable { onLaunch() }
                         .padding(16.dp)
                         .testTag("details_launch_button"),

@@ -46,6 +46,7 @@ import com.arkeos.arkclone.ui.theme.ArkSurfaceVariant
 import com.arkeos.arkclone.ui.theme.ArkMuted
 import com.arkeos.arkclone.ui.theme.ArkSubtle
 import com.arkeos.arkclone.ui.theme.ArkPaper
+import com.arkeos.arkclone.ui.theme.ArkAction
 import com.arkeos.arkclone.ui.theme.ArkInk
 import com.arkeos.arkclone.ui.theme.ArkSoft
 
@@ -208,7 +209,7 @@ fun InstanceCard(
                     modifier = Modifier
                         .weight(1.3f)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(ArkInk)
+                        .background(ArkAction)
                         .clickable { onLaunchRealAppDirectly() }
                         .padding(vertical = 10.dp)
                         .testTag("launch_button_${instance.id}"),

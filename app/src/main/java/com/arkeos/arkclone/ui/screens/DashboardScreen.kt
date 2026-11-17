@@ -57,6 +57,7 @@ import com.arkeos.arkclone.ui.theme.ArkSurfaceVariant
 import com.arkeos.arkclone.ui.theme.ArkMuted
 import com.arkeos.arkclone.ui.theme.ArkSubtle
 import com.arkeos.arkclone.ui.theme.ArkPaper
+import com.arkeos.arkclone.ui.theme.ArkAction
 import com.arkeos.arkclone.ui.theme.ArkInk
 import com.arkeos.arkclone.ui.theme.ArkSoft
 
@@ -102,7 +103,7 @@ fun DashboardScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onOpenCloneDialog,
-                containerColor = ArkInk,
+                containerColor = ArkAction,
                 contentColor = ArkPaper,
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.testTag("fab_clone_app")
@@ -153,7 +154,7 @@ fun DashboardScreen(
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(6.dp))
-                                    .background(if (isCatSelected) ArkInk else ArkSurface)
+                                    .background(if (isCatSelected) ArkAction else ArkSurface)
                                     .border(
                                         1.dp,
                                         if (isCatSelected) ArkInk else ArkBorder,
@@ -288,7 +289,7 @@ fun DashboardScreen(
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(6.dp))
-                                    .background(ArkInk)
+                                    .background(ArkAction)
                                     .clickable { onSuggestionClick(app) }
                                     .padding(horizontal = 12.dp, vertical = 8.dp)
                                     .testTag("quick_clone_btn_${app.packageName}"),
